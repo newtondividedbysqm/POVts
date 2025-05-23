@@ -210,15 +210,7 @@ abstract class Schema<T> {
     this._defaultValue = value;
     return this;
   }
-  /**
-   * alias for `.catch()`
-   * @see .catch()
-   */
-  defaultCatch(value: T): this {
-    this._catch = true;
-    this._defaultValue = value;
-    return this;
-  }
+  defaultCatch = this.catch
 
   /**
    * Sets the schema to be optional meaning the value will be set to undefinded if the validation failed.
