@@ -62,7 +62,7 @@ export class Validator {
   }
 
   /**
-   * @deprecated use `.nullable()` or `.nullish()` instead
+   * @deprecated use `v.string().nullable()` or `v.string().nullish()` instead
    * @example
    * // instead of v.nullable(v.string()) use:
    * v.string().nullish() //allows null and undefined values
@@ -72,7 +72,7 @@ export class Validator {
   }
 
   /**
-   * @deprecated use `.default()` or `.catch()` instead
+   * @deprecated use `v.string().default()` or `v.string().catch()` instead
    * @example
    * // instead of v.default(v.string(), "default value") use:
    * v.string().default("default value") //replaces null or undefined values with "default value"
@@ -231,7 +231,7 @@ abstract class Schema<T> {
   }
 
   /**
-   * internal function to act upon a null or undefinded values
+   * internal function to act upon a null or undefinded given values
    */
   protected preValidationCheck(value: T): ValidationResult<T | null> | { success: false } {
     if (value === null || value === undefined) {
@@ -326,8 +326,8 @@ export class StringSchema extends Schema<string> {
     return this;
   }
   /**
-   * Sets the schema to validate only non-empty strings.
-   * *Note:** this will overwrite a minimum value of 0*
+   * Sets the schema to validate only non-empty strings.  
+   * **Note:** this will overwrite a minimum value of 0
    
    */
   nonEmpty() {
@@ -816,7 +816,7 @@ export class BooleanSchema extends Schema<boolean> {
   /**
    * Sets the schema to validate against truthy values.
    * This method will coerce the value to boolean using JS truthy/falsy rules.
-   * alias for as boolish().true()
+   * alias for coerce().true()
    */
   truthy() {
     this._coerce = true;
@@ -837,7 +837,7 @@ export class BooleanSchema extends Schema<boolean> {
   /**
    * Sets the schema to validate against falsy values.
    * This method will coerce the value to boolean using JS truthy/falsy rules.
-   * alias for as boolish().false()
+   * alias for coerce().false()
    */
   falsy() {
     this._coerce = true;
