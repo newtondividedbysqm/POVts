@@ -521,21 +521,21 @@ export class StringSchema extends Schema<string> {
 
     //from zod/src/types.ts
     const base64Regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
-    if (this._base64 && base64Regex.test(value)) {
+    if (this._base64 && !base64Regex.test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a valid base64 string.`],
       });
     }
 
-    if (this._alpha && alpha[this._locale].test(value)) {
+    if (this._alpha && !alpha[this._locale].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be an alphabetic string, given was ${givenValue}`],
       });
     }
 
-    if (this._alphanumeric && alphanumeric[this._locale].test(value)) {
+    if (this._alphanumeric && !alphanumeric[this._locale].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be an alphanumeric string, given was ${givenValue}`],
@@ -543,7 +543,7 @@ export class StringSchema extends Schema<string> {
     }
 
     const numericRegex = /^[0-9]+$/i;
-    if (this._numeric && numericRegex.test(value)) {
+    if (this._numeric && !numericRegex.test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a numerical string, given was ${givenValue}`],
