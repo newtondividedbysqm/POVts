@@ -358,8 +358,9 @@ export class StringSchema extends Schema<string> {
   }
 
   /**
-   * Sets the schema to validate base64 format.
-   
+   * Sets the schema to validate base64 format.  
+   * **Note:** Empty strings are valid base64 and in compliance with rfc4648.  
+   * Use base64().NonEmpty() instead where applicable
    */
   base64() {
     this._base64 = true;
