@@ -93,7 +93,7 @@ export class Validator {
    * // result = { success: true, value: "Hello World" }
    * // value is typed as string
    */
-  static literal<T>(value: T) {
+  static literal<const T>(value: T) {
     return new LiteralSchema(value);
   }
 
@@ -108,7 +108,7 @@ export class Validator {
    * // result = { success: true, value: "B" }
    * // value is typed as "A" | "B" | "C"
    */
-  static enum<T extends string | number>(enumValues: T[]) {
+  static enum<const T extends string | number>(enumValues: T[]) {
     return new EnumSchema(enumValues);
   }
 
