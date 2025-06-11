@@ -726,25 +726,25 @@ export class NumberSchema extends Schema<number> {
     }
 
 
-    if (this._positive && value < 0) {
+    if (this._positive && !(value > 0)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a positive number, given was ${givenValue}`],
       });
     }
-    if (this._negative && value > 0) {
+    if (this._negative && !(value < 0)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a negative number, given was ${givenValue}`],
       });
     }
-    if (!Number.isNaN(this._min) && value < this._min) {
+    if (!Number.isNaN(this._min) && !(value >= this._min)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be greater than or equal ${this._min}, given was ${givenValue}`],
       });
     }
-    if (!Number.isNaN(this._max) && value > this._max) {
+    if (!Number.isNaN(this._max) && !(value <= this._max)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be less than or equal ${this._max}, given was ${givenValue}`],
