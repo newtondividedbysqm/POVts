@@ -1045,8 +1045,6 @@ export class DateSchema extends Schema<Date> {
           const randomDate = new Date(this._before.getTime() + Math.random() * (this._after.getTime() - this._before.getTime()));
           return { success: true, value: randomDate };
         }
-
-        return { success: true, value: new Date() };
       }
 
       return this.postValidationCheck({
