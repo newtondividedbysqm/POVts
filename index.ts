@@ -956,6 +956,17 @@ export class DateSchema<T = Date> extends Schema<T> {
   private _before?: Date;
   private _after?: Date;
 
+
+  /**
+   * The schema will return the raw value as it was provided, if it passes validation.
+   * This way you can validate a date string or Date in ms without converting it to a Date instance.
+   * i.e. "2011-09-17" will be returned as it is, if the validation passes.
+   */
+  raw() {
+    this._coerce = false;
+    return this as unknown as DateSchema<string | number | Date>; 
+  }
+
   /**
    * Sets the schema to enforce the constraints.
    * *NOTE:* This will catch a failing validation and This will generate a random date within the given constraints IF the validation fails.
