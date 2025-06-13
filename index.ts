@@ -950,8 +950,8 @@ export class BooleanSchema extends Schema<boolean> {
  *
  * This class provides a `validate` method to check if a given value is a valid Date object.
  */
-export class DateSchema extends Schema<Date> {
-  private _coerce: boolean = false;
+export class DateSchema<T = Date> extends Schema<T> {
+  private _coerce: boolean = true;
   private _enforeceCoercion: boolean = false;
   private _before?: Date;
   private _after?: Date;
@@ -996,10 +996,14 @@ export class DateSchema extends Schema<Date> {
    * // result = { success: true, value: new Date('2023-12-31') }
    * // value is created with the Date constructor and is typed as Date
    */
-  validate(value: any): ValidationResult<Date> {
-    const preValidationCheck = this.preValidationCheck(value as Date);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<Date>;
+  validate(value: any): ValidationResult<T> {
+    const preValidationCheck = this.preValidationCheck(value);
+    if (preValidationCheck.success) return preValidationCheck as ValidationResult<T>;
+    
     const date = new Date(value);
+    if (this._coerce) {
+        value = date;
+    }
 
     if (date instanceof Date && !isNaN(date.getTime())) {
       if (this._before && date > this._before) {
