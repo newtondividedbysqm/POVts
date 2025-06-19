@@ -373,7 +373,7 @@ export class StringSchema extends Schema<string> {
    * use alpha("de-DE") to allow german umlaut during validation
    * @param locale The locale to be used for validation.
    */
-  alpha(locale: string = "en-US") {
+  alpha(locale: keyof typeof alpha = "en-US") {
     this._alpha = true;
     this._locale = locale;
     return this;
@@ -384,7 +384,7 @@ export class StringSchema extends Schema<string> {
    * use alphanumeric("de-DE") to allow german umlaut during validation
    * @param locale The locale to be used for validation.
    */
-  alphanumeric(locale: string = "en-US") {
+  alphanumeric(locale: keyof typeof alphanumeric = "en-US") {
     this._alphanumeric = true;
     this._locale = locale;
     return this;
@@ -404,7 +404,7 @@ export class StringSchema extends Schema<string> {
    * For available patterns see: {@link https://github.com/validatorjs/validator.js/blob/master/src/lib/isPostalCode.js}
    * @param locale the ISO 3166-1 alpha-2 country code to be used for validation.
    */
-  postal(locale: string = "DE") {
+  postal(locale: keyof typeof postal = "DE") {
     this._postal = true;
     this._locale = locale;
     return this;
@@ -422,7 +422,7 @@ export class StringSchema extends Schema<string> {
    * Sets the schema to validate an IBAN.
    * @param locale the ISO 3166-1 alpha-2 country code to be used for validation.
    */
-  IBAN(locale: string = "DE") {
+  IBAN(locale: keyof typeof ibanRegexThroughCountryCode = "DE") {
     this._IBAN = true;
     this._locale = locale;
     return this;
