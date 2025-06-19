@@ -1,7 +1,8 @@
 type ValidationResult<T> = { success: true; value: T } | { success: false; error: string[] };
 
 export class Validator {
-  static _version = "0.1.2";
+  static readonly _version = "0.1.2";
+
   /**
    * Creates a StringSchema to validate string values.
    * Can be chainend with methods like min, max, length, email, etc. to define constraints.
