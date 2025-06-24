@@ -61,28 +61,7 @@ export class Validator {
   static date() {
     return new DateSchema();
   }
-
-  /**
-   * @deprecated use `v.string().nullable()` or `v.string().nullish()` instead
-   * @example
-   * // instead of v.nullable(v.string()) use:
-   * v.string().nullish() //allows null and undefined values
-   */
-  static nullable<T>(schema: Schema<T>) {
-    return new NullableSchema(schema);
-  }
-
-  /**
-   * @deprecated use `v.string().default()` or `v.string().catch()` instead
-   * @example
-   * // instead of v.default(v.string(), "default value") use:
-   * v.string().default("default value") //replaces null or undefined values with "default value"
-   * v.string().catch("default value") //replaces failed validation with "default value"
-   */
-  static default<T>(schema: Schema<T>, defaultValue: T) {
-    return new DefaultSchema(schema, defaultValue);
-  }
-
+  
   /**
    * Creates a LiteralSchema to validate if the value is equal to the provided literal value.
    *
