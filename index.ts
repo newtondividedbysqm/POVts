@@ -298,15 +298,6 @@ export class StringSchema extends Schema<string> {
     return this;
   }
   /**
-   * Sets the schema to validate only non-empty strings.  
-   * **Note:** this will overwrite a minimum value of 0
-   
-   */
-  nonEmpty() {
-    if (isNaN(this._min) || this._min === 0) this._min = 1;
-    return this;
-  }
-  /**
    * Sets the maximum value for validation.
    *
    * @param value The maximum value to be set.
@@ -327,26 +318,38 @@ export class StringSchema extends Schema<string> {
     this._length = value;
     return this;
   }
-
   /**
-   * Sets the schema to validate email format.
+   * Sets the schema to validate only non-empty strings.  
+   * **Note:** this will overwrite a minimum value of 0
    
    */
-  email() {
-    this._email = true;
+  nonEmpty() {
+    if (isNaN(this._min) || this._min === 0) this._min = 1;
+    return this;
+  }
+  /**
+   * Sets the schema to validate if a string starts with the given value.
+   *
+   * @param value The value that the string should start with.
+   * @returns The current schema to allow method chaining.
+   */
+  startsWith(value: string) {
+    if (typeof value !== "string") throw new Error(`StringSchema Constraint Error: startsWith(${value}) parameter is not a string`)
+    this._startsWith = value;
     return this;
   }
 
   /**
-   * Sets the schema to validate base64 format.  
-   * **Note:** Empty strings are valid base64 and in compliance with rfc4648.  
-   * Use base64().NonEmpty() instead where applicable
+   * Sets the schema to validate if a string ends with the given value.
+   *
+   * @param value The value that the string should end with.
+   * @returns The current schema to allow method chaining.
    */
-  base64() {
-    this._base64 = true;
+  endsWith(value: string) {
+    if (typeof value !== "string") throw new Error(`StringSchema Constraint Error: endsWith(${value}) parameter is not a string`)
+    this._endsWith = value;
     return this;
   }
-
   /**
    * Sets the schema to validate an alphabetic string.
    * use alpha("de-DE") to allow german umlaut during validation
@@ -376,7 +379,23 @@ export class StringSchema extends Schema<string> {
     this._numeric = true;
     return this;
   }
-
+/**
+   * Sets the schema to validate email format.
+   
+   */
+  email() {
+    this._email = true;
+    return this;
+  }
+  /**
+   * Sets the schema to validate base64 format.  
+   * **Note:** Empty strings are valid base64 and in compliance with rfc4648.  
+   * Use base64().NonEmpty() instead where applicable
+   */
+  base64() {
+    this._base64 = true;
+    return this;
+  }
   /**
    * Sets the schema to validate a postal code.
    * This will validate for the german postal codes by default
