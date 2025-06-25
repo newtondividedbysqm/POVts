@@ -152,7 +152,7 @@ abstract class Schema<T> {
    *
    * @returns the current schema to allow method chaining
    */
-  nullable(): this {
+  nullable(): Schema<T | null> {
     this._nullable = true;
     return this;
   }
@@ -162,7 +162,7 @@ abstract class Schema<T> {
    *
    * @returns the current schema to allow method chaining
    */
-  nullish(): this {
+  nullish(): Schema<T | null> {
     this._nullish = true;
     return this;
   }
