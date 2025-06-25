@@ -88,7 +88,7 @@ export class Validator {
    * // result = { success: true, value: "B" }
    * // value is typed as "A" | "B" | "C"
    */
-  static enum<const T extends string | number>(enumValues: T[]) {
+  static enum<const T extends string | number>(enumValues: T[] = []) {
     return new EnumSchema(enumValues);
   }
 
@@ -1124,11 +1124,20 @@ export class LiteralSchema<T> extends Schema<T> {
 .########.##....##..#######..##.....##
 */
 export class EnumSchema<T extends string | number> extends Schema<T> {
-  private _enumValues: T[] = [];
+  private _enumValues: readonly T[];
 
-  constructor(values: T[]) {
+  constructor(values: readonly T[]) {
     super();
-    this._enumValues = values;
+    this._enumValues = values
+  }
+
+  /**
+   * Sets the schemata to validate for Seasons i.e. "spring", "summer", "autumn", "winter"
+   */
+  seasons() {
+    const values = ["spring", "summer", "autumn", "winter"] as const;
+    return new EnumSchema(values);
+  }
   }
 
   /**
