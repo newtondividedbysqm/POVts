@@ -1070,56 +1070,6 @@ export class DateSchema<T = Date> extends Schema<T> {
 }
 
 /*
-.##......##.########.....###....########..########..########.########...######.
-.##..##..##.##.....##...##.##...##.....##.##.....##.##.......##.....##.##....##
-.##..##..##.##.....##..##...##..##.....##.##.....##.##.......##.....##.##......
-.##..##..##.########..##.....##.########..########..######...########...######.
-.##..##..##.##...##...#########.##........##........##.......##...##.........##
-.##..##..##.##....##..##.....##.##........##........##.......##....##..##....##
-..###..###..##.....##.##.....##.##........##........########.##.....##..######.
-*/
-
-/**
- * @deprecated use `nullable()` on the schemata instead
- */
-export class NullableSchema<T> extends Schema<T | null> {
-  constructor(private innerSchema: Schema<T>) {
-    super();
-  }
-
-  /**
-   * @deprecated use `nullable()` on the schemata instead
-   */
-  validate(value: unknown): ValidationResult<T | null> {
-    if (value === null || value === undefined) {
-      return { success: true, value: null };
-    } else {
-      return this.innerSchema.validate(value);
-    }
-  }
-}
-
-/**
- * @deprecated use `default()` on the schemata instead
- */
-export class DefaultSchema<T> extends Schema<T> {
-  constructor(private innerSchema: Schema<T>, private defaultValue: T) {
-    super();
-  }
-
-  /**
-   * * @deprecated use `default()` on the schemata instead
-   */
-  validate(value: unknown): ValidationResult<T> {
-    if (value === undefined || value === null) {
-      return { success: true, value: this.defaultValue };
-    } else {
-      return this.innerSchema.validate(value);
-    }
-  }
-}
-
-/*
 .##.......####.########.########.########.....###....##........######.
 .##........##.....##....##.......##.....##...##.##...##.......##....##
 .##........##.....##....##.......##.....##..##...##..##.......##......
