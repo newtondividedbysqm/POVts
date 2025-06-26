@@ -956,6 +956,8 @@ export class DateSchema<T = Date> extends Schema<T> {
   private _shouldGenerateRandomDate: boolean = false;
   private _before?: Date;
   private _after?: Date;
+  private _generateBefore?: Date;
+  private _generateAfter?: Date;
 
 
   /**
@@ -976,6 +978,28 @@ export class DateSchema<T = Date> extends Schema<T> {
    */
   populate() {
     this._shouldGenerateRandomDate = true;
+    const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000;
+
+    //if only one of the two constraints is set, we create a generationConstraint one year before/after the given date
+    if (this._before && !this._after) {
+      this._generateBefore = new Date(this._before.getTime());
+      this._generateAfter = new Date(this._before.getTime() - oneYearInMilliseconds);
+
+    }
+    if (!this._before && this._after) {
+      this._generateBefore = new Date(this._after.getTime() + oneYearInMilliseconds);
+      this._generateAfter = new Date(this._after.getTime());
+
+    }
+    //if none of the two constraints is set, we create a generationConstraint that is within the last year
+    if (!this._before && !this._after) {
+      this._generateBefore = new Date(Date.now());
+      this._generateAfter = new Date(Date.now() - oneYearInMilliseconds);
+    }
+    if (this._before && this._after) {
+      this._generateBefore = new Date(this._before.getTime());
+      this._generateAfter = new Date(this._after.getTime());
+    }
     return this;
   }
   enforce = this.populate;
@@ -1053,25 +1077,9 @@ export class DateSchema<T = Date> extends Schema<T> {
     } else {
       
       if (this._shouldGenerateRandomDate) {
-        const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000;
-
-        //if only one of the two constraints is set, we create a constraint one year before/after the given date
-        if (this._before && !this._after) {
-          this._after = new Date(this._before.getTime() - oneYearInMilliseconds);
-        }
-        if (!this._before && this._after) {
-          this._before = new Date(this._after.getTime() + oneYearInMilliseconds);
-        }
-        //if none of the two constraints is set, we create a constraint that is within the last year
-        if (!this._before && !this._after) {
-          this._before = new Date(Date.now());
-          this._after = new Date(Date.now() - oneYearInMilliseconds);
-        }
         //create a new random date object within the schemata constraints
-        if (this._before && this._after) {
-          const randomDate = new Date(this._before.getTime() + Math.random() * (this._after.getTime() - this._before.getTime()));
-          return { success: true, value: randomDate };
-        }
+        const randomDate = new Date(this._generateBefore.getTime() + Math.random() * (this._generateAfter.getTime() - this._generateBefore.getTime()));
+        return { success: true, value: randomDate };
       }
 
       return this.postValidationCheck({
