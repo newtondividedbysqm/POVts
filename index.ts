@@ -1015,6 +1015,13 @@ export class DateSchema<T = Date> extends Schema<T> {
     const preValidationCheck = this.preValidationCheck(value);
     if (preValidationCheck.success) return preValidationCheck as ValidationResult<T>;
     
+    //the js Date constructor will return an 1970-01-01 if the value is null, so we filter that out
+    if (value === null) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be a valid Date representation, given was null`],
+      });
+    }
     const date = new Date(value);
     if (this._coerce) {
         value = date;
