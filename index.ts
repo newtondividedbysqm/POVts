@@ -951,7 +951,7 @@ export class BooleanSchema extends Schema<boolean> {
  */
 export class DateSchema<T = Date> extends Schema<T> {
   private _coerce: boolean = true;
-  private _enforeceCoercion: boolean = false;
+  private _shouldGenerateRandomDate: boolean = false;
   private _before?: Date;
   private _after?: Date;
 
@@ -967,14 +967,17 @@ export class DateSchema<T = Date> extends Schema<T> {
   }
 
   /**
-   * Sets the schema to enforce the constraints.
-   * *NOTE:* This will catch a failing validation and This will generate a random date within the given constraints IF the validation fails.
-   * If no constraints are set, a random date within the last year will be created.
+   * Sets the schema to fallback on a randomly generated date.  
+   * *NOTE:* If the validation fails, this will generate a random date within the given constraints
+   * If BOTH  `before` or `after` are unset, a random date within the last year from today will be created.
+   * If EITHER `before` or `after` is unset, a random date within one year before/after that given date will be created.
    */
-  enforce() {
-    this._enforeceCoercion = true;
+  populate() {
+    this._shouldGenerateRandomDate = true;
     return this;
   }
+  enforce = this.populate;
+  
 
   /**
    * Sets the schema to validate dates before a given date.
@@ -1039,7 +1042,8 @@ export class DateSchema<T = Date> extends Schema<T> {
 
       return { success: true, value: value };
     } else {
-      if (this._enforeceCoercion) {
+      
+      if (this._shouldGenerateRandomDate) {
         const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000;
 
         //if only one of the two constraints is set, we create a constraint one year before/after the given date
