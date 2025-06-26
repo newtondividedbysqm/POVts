@@ -1123,14 +1123,14 @@ export class LiteralSchema<T> extends Schema<T> {
    * // result = { success: true, value: "hello" }
    * // value is typed as "hello"
    */
-  validate<U extends T>(value: U): ValidationResult<U> {
+  validate(value: T): ValidationResult<T> {
     const preValidationCheck = this.preValidationCheck(value);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<U>;
+    if (preValidationCheck.success) return preValidationCheck;
 
     if (value === this.literalValue) {
-      return { success: true, value: value as U};
+      return { success: true, value: value};
     } else {
-      return this.postValidationCheck({ success: false, error: [`must be ${this.literalValue}, given was ${value}`] }) as ValidationResult<U>;
+      return this.postValidationCheck({ success: false, error: [`must be ${this.literalValue}, given was ${value}`] });
     }
   }
 }
