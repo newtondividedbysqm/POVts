@@ -944,6 +944,8 @@ export class BooleanSchema extends Schema<boolean> {
 .########..##.....##....##....########
 */
 
+const isValidDateObject = (date) => date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
+
 /**
  * A schema for validating date values.
  *
@@ -1018,7 +1020,7 @@ export class DateSchema<T = Date> extends Schema<T> {
         value = date;
     }
 
-    if (date instanceof Date && !isNaN(date.getTime())) {
+    if (isValidDateObject(date)) {
       if (this._before && date > this._before) {
         return this.postValidationCheck({
           success: false,
