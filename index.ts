@@ -967,7 +967,7 @@ export class DateSchema<T = Date> extends Schema<T> {
    */
   raw() {
     this._coerce = false;
-    return this as unknown as DateSchema<string | number | Date>; 
+    return this as DateSchema<string | number | Date>;
   }
 
   /**
