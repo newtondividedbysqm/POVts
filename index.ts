@@ -863,32 +863,22 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   private _coerceFromBoolish(value: unknown): boolean | undefined {
-    switch (value) {
+    let normalizedValue = value.toString().trim().toLowerCase(); 
+    switch (normalizedValue) {
       case "1":
-      case 1:
       case "true":
-      case true:
       case "yes":
-      case "Yes":
       case "ja":
-      case "Ja":
       case "y":
-      case "Y":
       case "j":
-      case "J":
       case "wahr":
       case "on":
         return true;
       case "0":
-      case 0:
       case "false":
-      case false:
       case "no":
-      case "No":
       case "nein":
-      case "Nein":
       case "n":
-      case "N":
       case "falsch":
       case "off":
         return false;
