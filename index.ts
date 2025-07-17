@@ -278,6 +278,8 @@ export class StringSchema extends Schema<string> {
   private _postal: boolean = false;
   private _ipVersion: false | 4 | 6 = false;
 
+  private _transformRules: {(param:string): string;}[] = [] 
+
   /**
    * Coerces the value into a String using the JS-built-in String() function
    * ***Note:** this will treat undefined or null as a literal string i.e. "null"*
@@ -439,6 +441,74 @@ export class StringSchema extends Schema<string> {
     this._ipVersion = version;
     return this;
   }
+
+  /**
+   * Adds a custom transformation function to the schema.  
+   * The function will be applied right after a basic js type validation/coercion but before all other validation.  
+   * The function should expect a string as parameter and return a string.
+   *
+   * @param transformFn The transformation function to be applied.
+   * @returns The current schema to allow method chaining.
+   * @throws Error if the provided parameter is not a function.
+   */
+  transform(transformFn: {(param:string): string;}) {
+    if (typeof transformFn !== "function") {
+      throw new Error(`StringSchema Transform Error: transform() parameter must be a function`);
+    }
+    this._transformRules.push(transformFn);
+    return this;
+  }
+  /// Transform methods
+  /**
+   * Sets the schema to trim whitespace from the start and end of the string.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   */
+  trim() {
+    this._transformRules.push( (value):string => {
+      if (typeof value === "string") {
+        return value.trim();
+      } else {
+        throw new Error(`StringSchema Transform Error: trim() can only be applied to string values`);
+      }
+    });
+    return this;
+  }
+  /**
+   * Sets the schema to lowercase the string.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   */
+  toLowerCase() {
+    this._transformRules.push( (value):string => {
+      if (typeof value === "string") {
+        return value.toLowerCase();
+      } else {
+        throw new Error(`StringSchema Transform Error: toLowerCase() can only be applied to string values`);
+      }
+    });
+    return this;
+  }
+
+  toUpperCase() {
+    this._transformRules.push( (value):string => {
+      if (typeof value === "string") {
+        return value.toUpperCase()
+      } else {
+        throw new Error(`StringSchema Transform Error: toUpperCase() can only be applied to string values`);
+      }
+    });
+    return this;
+  }
+
+  capitalized() {
+    this._transformRules.push( (value):string => {
+      if (typeof value === "string") {
+        return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+      } else {
+        throw new Error(`StringSchema Transform Error: capitalized() can only be applied to string values`);
+      }
+    });
+    return this;
+  }
   /*
 ........######..########.########..####.##....##..######..
 .......##....##....##....##.....##..##..###...##.##....##.
@@ -480,6 +550,13 @@ export class StringSchema extends Schema<string> {
         success: false,
         error: [`must be a string, given was ${typeof givenValue}`],
       });
+    }
+    
+    ///transform the value before continuing with the validation
+    if (this._transformRules.length > 0) {
+      for (const transform of this._transformRules) {
+          <string>value == transform(value as string);
+      }
     }
 
     if (!Number.isNaN(this._min) && value.length < this._min) {
