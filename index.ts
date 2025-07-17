@@ -207,14 +207,17 @@ abstract class Schema<T> {
    */
   protected preValidationCheck(value: T): ValidationResult<T | null> | { success: false } {
     if (value === null || value === undefined) {
+      if (this._default) { // default() to act upon null or undefined values
+        return { success: true, value: this._defaultValue };
+      }
       if (this._nullish) {
         return { success: true, value: null };
       }
-      if (this._default || this._catch) {
-        return { success: true, value: this._defaultValue };
-      }
       if (this._nullable && value === null) {
         return { success: true, value: null };
+      }
+      if (this._catch) { // catch() to act upon failed validation, therefore nullish and nullable takes precedence
+        return { success: true, value: this._defaultValue };
       }
       if (this._isOptional) return { success: true, value: undefined as T };
     }
