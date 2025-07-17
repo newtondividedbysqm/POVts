@@ -543,6 +543,12 @@ export class StringSchema extends Schema<string> {
     const givenValue = value
     if (this._coerce) {
       value = String(value);
+      if (value === "[object Object]") {
+        return this.postValidationCheck({
+          success: false,
+          error: [`must be a string, given was an object`],
+        });
+      }
     }
 
     if (typeof value !== "string") {
