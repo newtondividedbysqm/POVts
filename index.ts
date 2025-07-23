@@ -886,6 +886,9 @@ export class BooleanSchema extends Schema<boolean> {
   private _falsy: boolean = false;
   private _useCustomCoercion: boolean = false;
 
+  private _customCoercion = { 
+      truthy: new Set(["true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr"]),
+      falsy: new Set(["false","0", "no", "off", "n", "disabled", "nein", "falsch"])};
   /**
    * Sets the schema to coerce values to boolean using JS truthy/falsy rules.
    * use `boolish()` to use our custom coercion logic.
@@ -949,28 +952,16 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   private _coerceFromBoolish(value: unknown): boolean | undefined {
-    let normalizedValue = value.toString().trim().toLowerCase(); 
-    switch (normalizedValue) {
-      case "1":
-      case "true":
-      case "yes":
-      case "ja":
-      case "y":
-      case "j":
-      case "wahr":
-      case "on":
-        return true;
-      case "0":
-      case "false":
-      case "no":
-      case "nein":
-      case "n":
-      case "falsch":
-      case "off":
-        return false;
-      default:
-        return undefined;
+    let normalizedValue = (value !== null && value !== undefined) ? String(value).trim().toLowerCase() : "";
+    
+    if (this._customCoercion.truthy?.has(normalizedValue)) {
+      return true;
     }
+    if (this._customCoercion.falsy?.has(normalizedValue)) {
+      return false;
+    }
+    
+    return undefined
   }
 
   /**
