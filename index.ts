@@ -899,13 +899,30 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   /**
-   * Sets the schema to coerce using our custom coercion logic.
-   * This will result in "wahr", "1", "yes" and similar values to be coerced to true,
-   * while "falsch", 0, "no" or similar values will be coerced to false.
+   * Sets the schema to coerce using our custom coercion logic.  
+   * This will result in "true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr" to be coerced to true,  
+   * while "false","0", "no", "off", "n", "disabled", "nein", "falsch" will be coerced to false.  
+   *   
+   * To customize the turthy and falsy values, use the `customCoercion` parameter.
+   * The custom coercion is case-insensitive; all values are trimmed and lowercased.
+   * 
+   * @param customCoercion an object with two arrays of define custom truthy and falsy values
+   * @example
+   * const schema = v.boolean().boolish({
+   *   truthy: ["true", "1", "yes", "on", "y", "enabled"],
+   *   falsy: ["false", "0", "no", "off", "n", "disabled"],
+   * });
    */
-  boolish() {
+  boolish(customCoercion?: {truthy: string[], falsy: string[]}) {
     this._coerce = true;
     this._useCustomCoercion = true;
+    if (customCoercion) {
+      this._customCoercion = {
+        truthy: new Set(customCoercion.truthy.map((v) => String(v).trim().toLowerCase())),
+        falsy: new Set(customCoercion.falsy.map((v) => String(v).trim().toLowerCase()))
+      }
+    }
+
     return this;
   }
 
