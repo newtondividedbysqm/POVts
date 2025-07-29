@@ -687,7 +687,7 @@ export class StringSchema extends Schema<string> {
       }
     }
 
-    return { success: true, value: value };
+    return this.postValidationCheck({ success: true, value: value });
   }
 }
 
@@ -865,7 +865,7 @@ export class NumberSchema extends Schema<number> {
         error: [`must a multiple of ${this._multipleOf}, given was ${givenValue}`],
       });
     }
-    return { success: true, value: value };
+    return this.postValidationCheck({ success: true, value: value });
   }
 }
 
@@ -1039,7 +1039,7 @@ export class BooleanSchema extends Schema<boolean> {
       return this.postValidationCheck({ success: false, error: [`must be falsy, given was ${value}`] });
     }
 
-    return { success: true, value: value };
+    return this.postValidationCheck({ success: true, value: value });
   }
 }
 
@@ -1184,13 +1184,13 @@ export class DateSchema<T = Date> extends Schema<T> {
         });
       }
 
-      return { success: true, value: value };
+      return this.postValidationCheck({ success: true, value: value });
     } else {
       
       if (this._shouldGenerateRandomDate) {
         //create a new random date object within the schemata constraints
         const randomDate = new Date(this._generateBefore.getTime() + Math.random() * (this._generateAfter.getTime() - this._generateBefore.getTime()));
-        return { success: true, value: randomDate };
+        return this.postValidationCheck({ success: true, value: randomDate });
       }
 
       return this.postValidationCheck({
@@ -1241,7 +1241,7 @@ export class LiteralSchema<T> extends Schema<T> {
 
 
     if (value === this.literalValue) {
-      return { success: true, value: value};
+      return this.postValidationCheck({ success: true, value: value });
     } else {
       return this.postValidationCheck({ success: false, error: [`must be ${this.literalValue}, given was ${value}`] });
     }
@@ -1291,7 +1291,7 @@ export class EnumSchema<T extends string | number> extends Schema<T> {
     else {value = preValidationResult.value}
 
     if (this._enumValues.includes(value as T)) {
-      return { success: true, value: value as T };
+      return this.postValidationCheck({ success: true, value: value as T});
     } else {
       return this.postValidationCheck({
         success: false,
@@ -1419,7 +1419,7 @@ export class ObjectSchema<T extends Record<string, Schema<any>>> extends Schema<
           error: [`must be an object with at least one valid key-value pair, during validation the object became empty`],
         });
       }
-      return { success: true, value: results };
+      return this.postValidationCheck({ success: true, value: results });
     } else {
       return this.postValidationCheck({ success: false, error: errors });
     }
@@ -1544,7 +1544,7 @@ export class ArraySchema<T> extends Schema<T[]> {
           error: [`must be an array with ${this._max} or fewer elements, given was an array with ${results.length} elements`],
         });
       }
-      return { success: true, value: results };
+      return this.postValidationCheck({ success: true, value: results });
     } else {
       return this.postValidationCheck({ success: false, error: errors });
     }
