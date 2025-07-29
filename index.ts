@@ -1,4 +1,6 @@
 type ValidationResult<T> = { success: true; value: T } | { success: false; error: string[] };
+type CheckResult<T> = {status: "RETURN", value: ValidationResult<T>} | {status: "CONTINUE", value: unknown} 
+
 
 export class Validator {
   static readonly _version = "0.2.0";
@@ -206,23 +208,23 @@ abstract class Schema<T> {
   /**
    * internal function to act upon a null or undefinded given values
    */
-  protected preValidationCheck(value: T): ValidationResult<T | null> | { success: false } {
+  protected preValidationCheck(value: unknown): CheckResult<T>{
     if (value === null || value === undefined) {
       if (this._default) { // default() to act upon null or undefined values
-        return { success: true, value: this._defaultValue };
+        return { status: "RETURN", value: {success: true, value: this._defaultValue}};
       }
       if (this._nullish) {
-        return { success: true, value: null };
+        return { status: "RETURN", value: {success: true, value: null as any as T}};
       }
       if (this._nullable && value === null) {
-        return { success: true, value: null };
+        return { status: "RETURN", value: {success: true, value: null as any as T}};
       }
       if (this._catch) { // catch() to act upon failed validation, therefore nullish and nullable takes precedence
-        return { success: true, value: this._defaultValue };
+        return { status: "RETURN", value: {success: true, value: this._defaultValue }};
       }
-      if (this._isOptional) return { success: true, value: undefined as T };
+      if (this._isOptional) return { status: "RETURN", value: {success: true, value: undefined as T }};
     }
-    return { success: false };
+    return { status: "CONTINUE", value: value };
   }
   /**
    * internal function to act upon a failed validation
@@ -542,8 +544,10 @@ export class StringSchema extends Schema<string> {
    * // value is typed as string
    */
   validate(value: unknown): ValidationResult<string> {
-    const preValidationCheck = this.preValidationCheck(value as string);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<string>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
     const givenValue = value
     if (this._coerce) {
       value = String(value);
@@ -805,8 +809,9 @@ export class NumberSchema extends Schema<number> {
    * // value is typed as number
    */
   validate(value: unknown): ValidationResult<number> {
-    const preValidationCheck = this.preValidationCheck(value as number);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<number>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
 
     const givenValue = value
     if (this._coerce) {
@@ -994,8 +999,10 @@ export class BooleanSchema extends Schema<boolean> {
    * // value is typed as boolean
    */
   validate(value: unknown): ValidationResult<boolean> {
-    const preValidationCheck = this.preValidationCheck(value as boolean);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<boolean>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
 
     let coercedValue: boolean | undefined;
     if (this._coerce) {
@@ -1136,8 +1143,10 @@ export class DateSchema<T = Date> extends Schema<T> {
    * // value is created with the Date constructor and is typed as Date
    */
   validate(value: any): ValidationResult<T> {
-    const preValidationCheck = this.preValidationCheck(value);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<T>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
     
     //the js Date constructor will return an 1970-01-01 if the value is null, so we filter that out
     if (value === null) {
@@ -1224,8 +1233,10 @@ export class LiteralSchema<T> extends Schema<T> {
    * // value is typed as "hello"
    */
   validate(value: T): ValidationResult<T> {
-    const preValidationCheck = this.preValidationCheck(value);
-    if (preValidationCheck.success) return preValidationCheck;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
 
     if (value === this.literalValue) {
       return { success: true, value: value};
@@ -1273,8 +1284,9 @@ export class EnumSchema<T extends string | number> extends Schema<T> {
    * // value is typed as "red" | "green" | "blue"
    */
   validate(value: unknown): ValidationResult<T> {
-    let preValidationCheck = this.preValidationCheck(value as T);
-    if (preValidationCheck.success) return preValidationCheck as ValidationResult<T>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
 
     if (this._enumValues.includes(value as T)) {
       return { success: true, value: value as T };
@@ -1359,8 +1371,10 @@ export class ObjectSchema<T extends Record<string, Schema<any>>> extends Schema<
    * // value is typed as { name: string; age: number; }
    */
   validate(value: unknown): ValidationResult<InferShape<T>> {
-    const preValidationResult = this.preValidationCheck(value as InferShape<T>);
-    if (preValidationResult.success) return preValidationResult as ValidationResult<InferShape<T>>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
 
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       return this.postValidationCheck({
@@ -1485,8 +1499,10 @@ export class ArraySchema<T> extends Schema<T[]> {
    * // value is typed as string[]
    */
   validate(value: unknown): ValidationResult<T[]> {
-    const preValidationResult = this.preValidationCheck(value as T[]);
-    if (preValidationResult.success) return preValidationResult as ValidationResult<T[]>;
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+    else {value = preValidationResult.value}
+
 
     if (!Array.isArray(value)) {
       return this.postValidationCheck({
