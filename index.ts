@@ -140,12 +140,13 @@ export class Validator {
 ..######...######..##.....##.########.##.....##.##.....##....##....##....##...
 */
 abstract class Schema<T> {
-  private _nullable: boolean = false;
-  private _nullish: boolean = false;
-  private _default: boolean = false;
-  private _defaultValue!: T;
-  private _catch: boolean = false;
-  _isOptional: boolean = false;
+  protected _nullable: boolean = false;
+  protected _nullish: boolean = false;
+  protected _prefault: boolean = false;
+  protected _default: boolean = false;
+  protected _defaultValue!: T;
+  protected _catch: boolean = false;
+   _isOptional: boolean = false;
 
   /**
    * Sets the schema to strictly allow null values.
