@@ -151,23 +151,25 @@ abstract class Schema<T> {
    _isOptional: boolean = false;
 
   /**
-   * Sets the schema to strictly allow null values.
-   *
-   * @returns the current schema to allow method chaining
+   * Sets the schema to strictly allow null values.  
+   * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
+   * 
+   * @returns the current schema with a widened type to include null.
    */
   nullable(): Schema<T | null> {
     this._nullable = true;
-    return this;
+    return this as Schema<T | null>;
   }
 
   /**
-   * Sets the schema to allow nullish values (null or undefined).
-   *
-   * @returns the current schema to allow method chaining
+   * Sets the schema to allow nullish values (null or undefined).  
+   * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
+   * 
+   * @returns the current schema with a widened type to include null.
    */
   nullish(): Schema<T | null> {
     this._nullish = true;
-    return this;
+    return this as Schema<T | null>;
   }
 
   /**
