@@ -626,14 +626,14 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    if (this._alpha && !alpha[this._locale].test(value)) {
+    if (this._alpha && !alpha[this._locale as keyof typeof alpha].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be an alphabetic string, given was ${givenValue}`],
       });
     }
 
-    if (this._alphanumeric && !alphanumeric[this._locale].test(value)) {
+    if (this._alphanumeric && !alphanumeric[this._locale as keyof typeof alphanumeric].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be an alphanumeric string, given was ${givenValue}`],
@@ -648,8 +648,7 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    const postalRegex = postal[this._locale];
-    if (this._postal && !postalRegex.test(value)) {
+    if (this._postal && !postal[this._locale as keyof typeof postal].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a valid postal code, given was ${givenValue}`],
@@ -663,7 +662,7 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    if (this._IBAN && !ibanRegexThroughCountryCode[this._locale].test(value)) {
+    if (this._IBAN && !ibanRegexThroughCountryCode[this._locale as keyof typeof ibanRegexThroughCountryCode].test(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a valid ${[this._locale]}-IBAN, given was ${givenValue}`],
