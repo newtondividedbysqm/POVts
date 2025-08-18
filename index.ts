@@ -11,7 +11,7 @@ export class Validator {
    *
    * @returns A StringSchema instance for string validation.
    * @example
-   * const schema = new StringSchema().min(5).max(20).email();
+   * const schema = v.string().min(5).max(20).email();
    *
    * result = schema.validate("mail@tld.com")
    * // result = { success: true, value: "mail@tld.com" }
@@ -27,7 +27,7 @@ export class Validator {
    *
    * @returns A NumberSchema instance for number validation.
    * @example
-   * const schema = new NumberSchema().positive().int().min(0).max(100);
+   * const schema = v.number().positive().int().min(0).max(100);
    * result = schema.validate(50);
    * // result = { success: true, value: 50 }
    * // value is typed as number
@@ -42,7 +42,7 @@ export class Validator {
    *
    * @returns A BooleanSchema instance for boolean validation.
    * @example
-   * const schema = new BooleanSchema().truthy();
+   * const schema = v.boolean().truthy();
    * result = schema.validate(1);
    * // result = { success: true, value: true }
    * // value is typed as boolean
@@ -57,7 +57,7 @@ export class Validator {
    *
    * @returns A DateSchema instance for date validation.
    * @example
-   * const schema = new DateSchema().before('2024-01-01').after('2023-01-01');
+   * const schema = v.date().before('2024-01-01').after('2023-01-01');
    * result = schema.validate('2023-12-31');
    */
   static date() {
