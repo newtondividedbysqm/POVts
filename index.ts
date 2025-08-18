@@ -1053,6 +1053,11 @@ export class BooleanSchema extends Schema<boolean> {
 */
 
 const isValidDateObject = (date) => date && Object.prototype.toString.call(date) === "[object Date]" && !isNaN(date);
+type Year = `${number}${number}${number}${number}`;
+type Month = `0${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}` | `1${0 | 1 | 2}`;
+type Day = `0${1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9}` | `${1 | 2}${number}` | `30` | `31`;
+
+type DateString = `${Year}-${Month}-${Day}`;
 
 /**
  * A schema for validating date values.
@@ -1118,7 +1123,7 @@ export class DateSchema<T = Date> extends Schema<T> {
    *
    * @param date - The date to be set as the upper limit.
    */
-  before(date: Date) {
+  before(date: Date | DateString ) {
     this._before = new Date(date);
     return this;
   }
@@ -1127,7 +1132,7 @@ export class DateSchema<T = Date> extends Schema<T> {
    *
    * @param date - The date to be set as the lower limit.
    */
-  after(date: Date) {
+  after(date: Date | DateString) {
     this._after = new Date(date);
     return this;
   }
