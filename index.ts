@@ -233,6 +233,7 @@ abstract class Schema<T> {
 
   abstract validate(value: unknown): ValidationResult<T>;
 }
+// #endregion
 
 // #region StringSchema
 /**
