@@ -165,7 +165,18 @@ abstract class Schema<T> {
   }
 
   /**
-   * Sets the schema to use a default value when a nullish value was provided for validation.
+   * Sets the schema to validate a default value when a nullish value was provided.
+   * As opposed to default(), which would short-circuit the validation process.  
+   * prefault() will take the default value to run the validation process.
+   * Note: This will take precedance over preprocess()
+   */
+  prefault(value: T): this {
+    this._prefault = true
+    this._defaultValue = value
+    return this
+  }
+  /**
+   * Sets the schema to use a default value when a nullish value was provided.
    * *Note:* use `catch()` to use the default value upon a failed validation.
    *
    * @param value the fallback value
@@ -203,6 +214,9 @@ abstract class Schema<T> {
    * internal function to act upon a null or undefinded given values
    */
   protected preValidationCheck(value: unknown): CheckResult<T>{
+    if (this._prefault && (value === null || value === undefined)) { //prefault must take precedance over preprocess
+      value = this._defaultValue
+    }
     if (value === null || value === undefined) {
       if (this._default) { // default() to act upon null or undefined values
         return { status: "RETURN", value: {success: true, value: this._defaultValue}};
