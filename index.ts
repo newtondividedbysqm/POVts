@@ -142,6 +142,7 @@ abstract class Schema<T> {
   protected _catch: boolean = false;
    _isOptional: boolean = false;
 
+  protected _preprocessRules: Array<(param: unknown) => unknown> = [] 
   /**
    * Sets the schema to strictly allow null values.  
    * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
@@ -211,12 +212,48 @@ abstract class Schema<T> {
   }
 
   /**
-   * internal function to act upon a null or undefinded given values
+   * sets the schema to call an anonymous function before any validation logic happens  
+   * **Note:** preprocess functions are called before nullable/nullish/default/optional checks,
+   * however if a prefault() value is provided, the preprocess pipeline will start with the provided value  
+   *
+   * @param fn an anonymous function that takes and returns an unknown value.
+   * @example 
+   * function appendBar(param: unknown) {
+   *   return param+"_BAR"
+   * }
+   * const strSchema = v.string().endsWith('_BAR').preprocess( appendBar )
+   * const result = strSchema.validate(20)
+   * // {
+   * //   "success": true,
+   * //   "value": "20_BAR"
+   * // } 
+   */
+  preprocess(fn: (param: unknown) => unknown) {
+    if (typeof fn !== "function") {
+      throw new Error(`Schema Definition Error: preprocess() parameter must be a function`);
+    }
+    this._preprocessRules.push(fn)
+    return this;
+  }
+  preform = this.preprocess
+
+  /**
+  /**
+  /**
+   * internal function to act before the start of the validations  
+   * this includes success events upon a null or undefinded values
+   * aswell as preprocess rules
    */
   protected preValidationCheck(value: unknown): CheckResult<T>{
     if (this._prefault && (value === null || value === undefined)) { //prefault must take precedance over preprocess
       value = this._defaultValue
     }
+    if (this._preprocessRules.length > 0) {
+        for (const fn of this._preprocessRules) {
+        value = fn(value);
+      }
+    }
+
     if (value === null || value === undefined) {
       if (this._default) { // default() to act upon null or undefined values
         return { status: "RETURN", value: {success: true, value: this._defaultValue}};
