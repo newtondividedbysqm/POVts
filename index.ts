@@ -255,7 +255,7 @@ abstract class Schema<T> {
     }
 
     if (value === null || value === undefined) {
-      if (this._default) { // default() to act upon null or undefined values
+      if (this._default) { // default() shall act upon null or undefined values
         return { status: "RETURN", value: {success: true, value: this._defaultValue}};
       }
       if (this._nullish) {
@@ -264,7 +264,7 @@ abstract class Schema<T> {
       if (this._nullable && value === null) {
         return { status: "RETURN", value: {success: true, value: null as any as T}};
       }
-      if (this._catch) { // catch() to act upon failed validation, therefore nullish and nullable takes precedence
+      if (this._catch) { // catch() shall act upon failed validation, therefore nullish and nullable takes precedence
         return { status: "RETURN", value: {success: true, value: this._defaultValue }};
       }
       if (this._isOptional) return { status: "RETURN", value: {success: true, value: undefined as T }};
@@ -524,6 +524,10 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
+  /**
+   * Sets the schema to UPPERCASE the string.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   */
   toUpperCase() {
     this._transformRules.push( (value):string => {
       if (typeof value === "string") {
@@ -535,6 +539,10 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
+  /**
+   * Sets the schema to Capitalize the string.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   */
   capitalized() {
     this._transformRules.push( (value):string => {
       if (typeof value === "string") {
