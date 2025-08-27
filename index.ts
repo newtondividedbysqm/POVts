@@ -1182,6 +1182,27 @@ export class DateSchema<T = Date> extends Schema<T> {
     this._after = new Date(date);
     return this;
   }
+  
+
+  protected postValidationCheck(result: ValidationResult<T>): ValidationResult<T> {
+    //overwrite failed validation with a random date
+    if (this._shouldGenerateRandomDate && result.success === false) {
+      result = { success: true, value: this._generateRandomDate() as T }
+    }
+    //continues to call the base implementation
+    const baseResult = super.postValidationCheck(result);
+    return baseResult
+  }
+
+  /** internal function to generate a random date based on the schema constraints */
+  private _generateRandomDate() {
+      let randomDate = new Date((this._generateBefore as Date).getTime() + Math.random() * ((this._generateAfter as Date).getTime() - (this._generateBefore as Date).getTime()));
+      // if (this._formatAsString) {
+      //   return this._formatDate(randomDate, this._formatAsString) as T;
+      // }
+      return randomDate as T
+
+  }
 
   /**
    * Validates the given value against the defined date constraints.
@@ -1207,50 +1228,44 @@ export class DateSchema<T = Date> extends Schema<T> {
         error: [`must be a valid Date representation, given was null`],
       });
     }
-    const date = new Date(value);
+    let date = new Date(value);
+    const givenValue = value
     if (this._coerce) {
         value = date;
     }
-
-    if (isValidDateObject(date)) {
-      if (this._before && date > this._before) {
-        return this.postValidationCheck({
-          success: false,
-          error: [`must be before ${this._before}, given was ${value}`],
-        });
-      }
-
-      if (this._after && date < this._after) {
-        return this.postValidationCheck({
-          success: false,
-          error: [`must be after ${this._after}, given was ${value}`],
-        });
-      }
-
-      if (this._before && this._after && (date < this._after || date > this._before)) {
-        return this.postValidationCheck({
-          success: false,
-          error: [`must be between ${this._after} and ${this._before}, given was ${value}`],
-        });
-      }
-
-      return this.postValidationCheck({ success: true, value: value });
-    } else {
-      
-      if (this._shouldGenerateRandomDate) {
-        //create a new random date object within the schemata constraints
-        const randomDate = new Date(this._generateBefore.getTime() + Math.random() * (this._generateAfter.getTime() - this._generateBefore.getTime()));
-        return this.postValidationCheck({ success: true, value: randomDate });
-      }
-
+    
+    if (!isValidDateObject(date)) {
       return this.postValidationCheck({
         success: false,
-        error: [`must be a valid Date, given was ${value}`],
+        error: [`must be a valid Date representation, given was ${givenValue}`],
       });
     }
+
+    if (this._before && this._after && (date < this._after || date > this._before)) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be between ${this._after} and ${this._before}, given was ${givenValue}`],
+      });
+    }
+  
+    if (this._before && date > this._before) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be before ${this._before}, given was ${givenValue}`],
+      });
+    }
+
+    if (this._after && date < this._after) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be after ${this._after}, given was ${givenValue}`],
+      });
+    }
+
+    return this.postValidationCheck({ success: true, value: value });
+
   }
 }
-
 // #endregion
 
 // #region LiteralSchema
