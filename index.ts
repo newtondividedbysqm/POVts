@@ -1,7 +1,14 @@
 type ValidationResult<T> = { success: true; value: T } | { success: false; error: string[] };
 type CheckResult<T> = {status: "RETURN", value: ValidationResult<T>} | {status: "CONTINUE", value: unknown} 
 
+// region: Helper Functions
+/** internal function to narrow type to be a number and NOT NaN */
+function isValidNumber(value: unknown): value is number {
+  return (typeof value === 'number' && value === value)
+}
 
+
+// endregion
 export class Validator {
   static readonly _version = "0.2.0";
 
@@ -831,7 +838,7 @@ export class NumberSchema extends Schema<number> {
     if (this._coerce) {
       value = Number(value);
     }
-    if (typeof value !== "number" || Number.isNaN(value)) {
+    if (!isValidNumber(value)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a number, given was ${typeof givenValue}`],
