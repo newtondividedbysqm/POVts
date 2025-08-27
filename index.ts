@@ -259,10 +259,10 @@ abstract class Schema<T> {
         return { status: "RETURN", value: {success: true, value: this._defaultValue}};
       }
       if (this._nullish) {
-        return { status: "RETURN", value: {success: true, value: null as any as T}};
+        return { status: "RETURN", value: {success: true, value: null as T}};
       }
       if (this._nullable && value === null) {
-        return { status: "RETURN", value: {success: true, value: null as any as T}};
+        return { status: "RETURN", value: {success: true, value: null as T}};
       }
       if (this._catch) { // catch() shall act upon failed validation, therefore nullish and nullable takes precedence
         return { status: "RETURN", value: {success: true, value: this._defaultValue }};
