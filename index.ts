@@ -166,6 +166,8 @@ abstract class Schema<T> {
    _isOptional: boolean = false;
 
   protected _preprocessRules: Array<(param: unknown) => unknown> = [] 
+  protected _postprocessRules: Array<(param: T) => any> = []
+
   /**
    * Sets the schema to strictly allow null values.  
    * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
@@ -262,6 +264,34 @@ abstract class Schema<T> {
 
   /**
   /**
+   * sets the schema to call an anonymous function after an successfull validation  
+   * 
+   * @param fn an anonymous function that takes and returns a value which must match with the type of the schema.
+   * @example 
+   * function appendBar(param: string) {
+   *   return param+"_BAR"
+   * }
+   * const strSchema = v.string().endsWith('_BAR').postprocess( appendBar )
+   * 
+   * const result = strSchema.validate("FOO")
+   * // {
+   * //   "success": false,
+   * //   "error": "must be a string that ends with _BAR ..."
+   * // }
+   * const successResult = strSchema.validate("FOO_BAR")
+   * // {
+   * //   "success": true,
+   * //   "value": "FOO_BAR_BAR"
+   * // } 
+   */
+  postprocess<nextType = T>(fn: (param: T) => nextType) {
+    if (typeof fn !== "function") {
+      throw new Error(`Schema Definition Error: postprocess() parameter must be a function`);
+    }
+    this._postprocessRules.push(fn)
+    return this as unknown as Schema<nextType>;
+  }
+  postform = this.postprocess
   /**
    * internal function to act before the start of the validations  
    * this includes success events upon a null or undefinded values
@@ -299,10 +329,18 @@ abstract class Schema<T> {
    * either returns the error result or a success result with a default/undefined
    */
   protected postValidationCheck(result: ValidationResult<T>): ValidationResult<T> {
-    if (result.success) return result;
-    if (this._catch) return { success: true, value: this._defaultValue };
-    if (this._isOptional) return { success: true, value: undefined as T };
-    return result;
+    if (result.success) {
+      if (this._postprocessRules.length > 0) {
+        for (const fn of this._postprocessRules) {
+            result.value = fn(result.value);
+        }
+      }
+      return result
+    } else { //sucess is false
+      if (this._catch) return { success: true, value: this._defaultValue };
+      if (this._isOptional) return { success: true, value: undefined as T };
+      return result;
+    }
   }
 
   abstract validate(value: unknown): ValidationResult<T>;
