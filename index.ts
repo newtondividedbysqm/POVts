@@ -1071,38 +1071,26 @@ export class BooleanSchema extends Schema<boolean> {
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
     else {value = preValidationResult.value}
 
-
+    const givenValue = value
     let coercedValue: boolean | undefined;
     if (this._coerce) {
-      //coerce the value
       if (this._useCustomCoercion) {
         coercedValue = this._coerceFromBoolish(value);
       } else {
         coercedValue = Boolean(value);
       }
-
-      //overwrite the value with our coerced value
-      if (typeof coercedValue !== "boolean") {
-        if (this._useCustomCoercion)
-          return this.postValidationCheck({ success: false, error: [`must be a boolish value, given was ${value}`] });
-        return this.postValidationCheck({
-          success: false,
-          error: [`must be a truthy/falsy value, given was ${value}`],
-        });
-      } else {
-        value = coercedValue;
-      }
+      value = coercedValue;
     }
 
     if (typeof value !== "boolean") {
-      return this.postValidationCheck({ success: false, error: [`must be a boolean, given was ${value}`] });
+      return this.postValidationCheck({ success: false, error: [`must be a ${this._useCustomCoercion ? 'boolish' : 'boolean'}, given was ${givenValue}`] });
     }
 
     if (this._truthy && !value) {
-      return this.postValidationCheck({ success: false, error: [`must be truthy, given was ${value}`] });
+      return this.postValidationCheck({ success: false, error: [`must be truthy, given was ${givenValue}`] });
     }
     if (this._falsy && value) {
-      return this.postValidationCheck({ success: false, error: [`must be falsy, given was ${value}`] });
+      return this.postValidationCheck({ success: false, error: [`must be falsy, given was ${givenValue}`] });
     }
 
     return this.postValidationCheck({ success: true, value: value });
