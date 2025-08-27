@@ -7,6 +7,19 @@ function isValidNumber(value: unknown): value is number {
   return (typeof value === 'number' && value === value)
 }
 
+/** internal function to check whether a Date Object is properly populated with a Date */
+function isValidDateObject(date: unknown): date is Date {
+  if (date !== null && typeof date === "object" && date instanceof Date && Object.prototype.toString.call(date) === "[object Date]") {  
+    const time = Date.prototype.getTime.call(date)
+    return ( Date.prototype.toString.call(date) !== 'Invalid Date' && time === time ) as boolean
+  }
+  return false
+}
+
+function isDate(date: unknown): date is Date {
+  return (date !== null && typeof date === "object" && date instanceof Date && Object.prototype.toString.call(date) === "[object Date]") as boolean
+}
+
 
 // endregion
 export class Validator {
