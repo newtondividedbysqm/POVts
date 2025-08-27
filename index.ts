@@ -22,6 +22,8 @@ function isDate(date: unknown): date is Date {
 
 
 // endregion
+
+// region: Validator
 export class Validator {
   static readonly _version = "0.2.0";
 
@@ -151,6 +153,7 @@ export class Validator {
     return new ObjectSchema(shape);
   }
 }
+// #endregion
 
 // #region Schema<T>
 abstract class Schema<T> {
