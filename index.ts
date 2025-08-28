@@ -1171,8 +1171,10 @@ export class DateSchema<T = Date> extends Schema<T> {
    */
   before(date: Date | DateString ) {
     this._before = new Date(date);
+    this._generateBefore = this._before
     return this;
   }
+  max = this.before
   /**
    * Sets the schema to validate dates after a given date.
    *
@@ -1180,9 +1182,11 @@ export class DateSchema<T = Date> extends Schema<T> {
    */
   after(date: Date | DateString) {
     this._after = new Date(date);
+    this._generateAfter = this._after
     return this;
   }
-  
+  min = this.after
+
 
   protected postValidationCheck(result: ValidationResult<T>): ValidationResult<T> {
     //overwrite failed validation with a random date
