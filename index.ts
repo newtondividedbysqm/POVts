@@ -1200,12 +1200,13 @@ export class DateSchema<T = Date> extends Schema<T> {
 
   /** internal function to generate a random date based on the schema constraints */
   private _generateRandomDate() {
-      let randomDate = new Date((this._generateBefore as Date).getTime() + Math.random() * ((this._generateAfter as Date).getTime() - (this._generateBefore as Date).getTime()));
+    const minTime = (this._generateAfter as Date).getTime();
+    const maxTime = (this._generateBefore as Date).getTime();
+    const randomDate = new Date(Math.random() * (maxTime - minTime) + minTime);
       // if (this._formatAsString) {
       //   return this._formatDate(randomDate, this._formatAsString) as T;
       // }
-      return randomDate as T
-
+    return randomDate as T
   }
 
   /**
