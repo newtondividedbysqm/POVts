@@ -615,7 +615,8 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
-  /** MARK: StringValidation
+  // MARK: string validation
+  /**
    * Validates the given value against the defined string constraints.
    *
    * @param value The value to be validated.
