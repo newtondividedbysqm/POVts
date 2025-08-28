@@ -1110,13 +1110,14 @@ type DateString = `${Year}-${Month}-${Day}`;
  *
  * This class provides a `validate` method to check if a given value is a valid Date object.
  */
-export class DateSchema<T = Date> extends Schema<T> {
+export class DateSchema<T extends Date | string | number = Date> extends Schema<T> {
   private _coerce: boolean = true;
   private _shouldGenerateRandomDate: boolean = false;
   private _before?: Date;
   private _after?: Date;
   private _generateBefore?: Date;
   private _generateAfter?: Date;
+  private _formatAsString?: string;
 
 
   /**
@@ -1126,7 +1127,7 @@ export class DateSchema<T = Date> extends Schema<T> {
    */
   raw() {
     this._coerce = false;
-    return this as DateSchema<string | number | Date>;
+    return this as unknown as DateSchema<string | number | Date>;
   }
 
   /**
@@ -1187,11 +1188,96 @@ export class DateSchema<T = Date> extends Schema<T> {
   }
   min = this.after
 
+  /**
+   * Sets the schema to format the date as a string.
+   * the string format defaults to the international date pattern of "YYYY-MM-DD"
+   * 
+   * You can use the following tokens in the format string:
+   * - YYYY: 4-digit year
+   * - YY: 2-digit year
+   * - MM: 2-digit month (01-12)
+   * - M: 1 or 2-digit month (1-12)
+   * - DD: 2-digit day of the month (01-31)
+   * - D: 1 or 2-digit day of the month (1-31)
+   * - hh: 2-digit hour (00-23)
+   * - h: 1 or 2-digit hour (0-23)
+   * - mm: 2-digit minute (00-59)
+   * - m: 1 or 2-digit minute (0-59)
+   * - ss: 2-digit second (00-59)
+   * - s: 1 or 2-digit second (0-59)
+   * - sss: 3-digit millisecond (000-999)  
+   * You can also escape tokens by prefixing them with a backslash (e.g. \M or \M\M).
+   * Keep in mind that js requires backslashes to be escaped themselves,
+   * therefore you need to use double backslashes.
+   *
+   * @param format A string defining the desired date format. Defaults to 'YYYY-MM-DD'.
+   */
+  toStr(format: string = 'YYYY-MM-DD'): DateSchema<string> {
+    this._formatAsString = format
+    return this as unknown as DateSchema<string>
+  }
+
+  // MARK: date helpers
+  private _formatDate(dateInput: Date | string | number, format: string): string {
+    const date = isDate(dateInput) ? dateInput : new Date(dateInput);
+
+    const pad = (n: number, width = 2) => n.toString().padStart(width, '0');
+
+
+    const formatMap: { [token: string]: string } = {
+      YYYY: date.getFullYear().toString(),
+      YY: date.getFullYear().toString().slice(-2),
+      MM: pad(date.getMonth() + 1),
+      M: (date.getMonth() + 1).toString(),
+      DD: pad(date.getDate()),
+      D: date.getDate().toString(),
+      hh: pad(date.getHours()),
+      h: date.getHours().toString(),
+      mm: pad(date.getMinutes()),
+      m: date.getMinutes().toString(),
+      ss: pad(date.getSeconds()),
+      s: date.getSeconds().toString(),
+      sss: pad(date.getMilliseconds(), 3),
+    };
+
+    // Escape handling: parse the format string character-by-character
+    let result = '';
+    let i = 0;
+
+    while (i < format.length) {
+      const char = format[i];
+
+      if (char === '\\') {
+        i++;
+        if (i < format.length) result += format[i];
+        i++;
+        continue;
+      }
+
+      // Match longest possible token at this position
+      const match = Object.keys(formatMap)
+        .sort((a, b) => b.length - a.length)
+        .find(token => format.startsWith(token, i));
+
+      if (match) {
+        result += formatMap[match];
+        i += match.length;
+      } else {
+        result += char;
+        i++;
+      }
+    }
+
+    return result;
+  }
 
   protected postValidationCheck(result: ValidationResult<T>): ValidationResult<T> {
     //overwrite failed validation with a random date
     if (this._shouldGenerateRandomDate && result.success === false) {
       result = { success: true, value: this._generateRandomDate() as T }
+    }
+    if (this._formatAsString && result.success) {
+      result = { success: true, value: this._formatDate(result.value, this._formatAsString) as T }
     }
     //continues to call the base implementation
     const baseResult = super.postValidationCheck(result);
@@ -1203,12 +1289,13 @@ export class DateSchema<T = Date> extends Schema<T> {
     const minTime = (this._generateAfter as Date).getTime();
     const maxTime = (this._generateBefore as Date).getTime();
     const randomDate = new Date(Math.random() * (maxTime - minTime) + minTime);
-      // if (this._formatAsString) {
-      //   return this._formatDate(randomDate, this._formatAsString) as T;
-      // }
+    if (this._formatAsString) {
+      return this._formatDate(randomDate, this._formatAsString) as T;
+    }
     return randomDate as T
   }
 
+  // MARK: date validation
   /**
    * Validates the given value against the defined date constraints.
    *
