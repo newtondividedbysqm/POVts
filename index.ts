@@ -388,9 +388,9 @@ export class StringSchema extends Schema<string> {
   private _IBAN: boolean = false;
   private _BIC: boolean = false;
   private _postal: boolean = false;
-  private _ipVersion: false | 4 | 6 = false;
 
   private _transformRules: {(param:string): string;}[] = [] 
+  private _ipVersion: false | 4 | 6 | 'any' = false;
 
   /**
    * Coerces the value into a String using the JS-built-in String() function
@@ -549,7 +549,7 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
-  ip(version: 4 | 6 = 4) {
+  ip(version: 4 | 6 | 'any' = 'any') {
     this._ipVersion = version;
     return this;
   }
@@ -775,8 +775,21 @@ export class StringSchema extends Schema<string> {
     }
 
     if (this._ipVersion) {
-      const ipRegex = this._ipVersion === 4 ? IPv4AddressRegExp : IPv6AddressRegExp;
-      if (!ipRegex.test(value)) {
+      if (this._ipVersion === 'any' && !(IPv4AddressRegExp.test(value) || IPv6AddressRegExp.test(value))) {
+        return this.postValidationCheck({
+          success: false,
+          error: [`must be a valid IPv4 or IPv6 address, given was ${givenValue}`],
+        });
+      }
+
+      if (this._ipVersion === 4 && !IPv4AddressRegExp.test(value)) {
+        return this.postValidationCheck({
+          success: false,
+          error: [`must be a valid IPv${this._ipVersion} address, given was ${givenValue}`],
+        });
+      }
+
+      if (this._ipVersion === 6 && !IPv6AddressRegExp.test(value)) {
         return this.postValidationCheck({
           success: false,
           error: [`must be a valid IPv${this._ipVersion} address, given was ${givenValue}`],
