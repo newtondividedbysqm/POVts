@@ -215,14 +215,24 @@ abstract class Schema<T> {
   }
   /**
    * Sets the schema to use a default value when the validation failed.
+   * Note: you can provide null or undefined as a value as a shortcut for nullable() or nullish() respectively.
    * @name catch
    * @param value the fallback value
    * @returns the current schema to allow method chaining
    */
-  catch(value: T): this {
+  catch(value: T): this;
+  catch(value: null | undefined): Schema<T | null>;
+  catch(value: T | null | undefined) {
     this._catch = true;
+
+    if (value === null || value === undefined) {
+      if (value === undefined) this._nullish = true;
+      else this._nullable = true;
+      return this as Schema<T | null>;
+    }
+
     this._defaultValue = value;
-    return this;
+    return this as Schema<T>;
   }
   defaultCatch = this.catch
 
@@ -337,7 +347,12 @@ abstract class Schema<T> {
       }
       return result
     } else { //sucess is false
-      if (this._catch) return { success: true, value: this._defaultValue };
+      if (this._catch) {
+        if (this._defaultValue === undefined || this._defaultValue === null) {
+          return { success: true, value: null as T };
+        }
+        return { success: true, value: this._defaultValue }
+      }
       if (this._isOptional) return { success: true, value: undefined as T };
       return result;
     }
