@@ -2,6 +2,11 @@ type ValidationResult<T> = { success: true; value: T } | { success: false; error
 type CheckResult<T> = {status: "RETURN", value: ValidationResult<T>} | {status: "CONTINUE", value: unknown} 
 
 // region: Helper Functions
+/** internal function to narrow type to be nullish */
+function isNullish(value: unknown): value is null | undefined {
+  return value === null || value === undefined;
+}
+
 /** internal function to narrow type to be a number and NOT NaN */
 function isValidNumber(value: unknown): value is number {
   return (typeof value === 'number' && value === value)
@@ -214,20 +219,19 @@ abstract class Schema<T> {
     return this;
   }
   /**
-   * Sets the schema to use a default value when the validation failed.
-   * Note: you can provide null or undefined as a value as a shortcut for nullable() or nullish() respectively.
+   * Sets the schema to use a default value when the validation failed.  
+   * Note: you can provide null as a value as a shortcut nullish().
    * @name catch
    * @param value the fallback value
    * @returns the current schema to allow method chaining
    */
   catch(value: T): this;
-  catch(value: null | undefined): Schema<T | null>;
-  catch(value: T | null | undefined) {
+  catch(value: null): Schema<T | null>;
+  catch(value: T | null) {
     this._catch = true;
 
-    if (value === null || value === undefined) {
-      if (value === undefined) this._nullish = true;
-      else this._nullable = true;
+    if (value === null) {
+      this._nullish = true;
       return this as Schema<T | null>;
     }
 
@@ -348,10 +352,7 @@ abstract class Schema<T> {
       return result
     } else { //sucess is false
       if (this._catch) {
-        if (this._defaultValue === undefined || this._defaultValue === null) {
-          return { success: true, value: null as T };
-        }
-        return { success: true, value: this._defaultValue }
+        return { success: true, value: isNullish(this._defaultValue) ? null as T : this._defaultValue };
       }
       if (this._isOptional) return { success: true, value: undefined as T };
       return result;
