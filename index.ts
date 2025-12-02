@@ -385,6 +385,8 @@ export class StringSchema extends Schema<string> {
   private _alpha: boolean = false;
   private _alphanumeric: boolean = false;
   private _numeric: boolean = false;
+  private _numericmin: number = NaN;
+  private _numericmax: number = NaN;
   private _ISO31661Alpha2: boolean = false;
   private _IBAN: boolean = false;
   private _BIC: boolean = false;
@@ -490,9 +492,12 @@ export class StringSchema extends Schema<string> {
 
   /**
    * Sets the schema to validate an numeric string.
+   * You can provide a min and max value to check if the numeric value is within the range.
    */
-  numeric() {
+  numeric(min: number = NaN, max: number = NaN) {
     this._numeric = true;
+    this._numericmin = min;
+    this._numericmax = max;
     return this;
   }
 /**
@@ -744,6 +749,18 @@ export class StringSchema extends Schema<string> {
       return this.postValidationCheck({
         success: false,
         error: [`must be a numerical string, given was ${givenValue}`],
+      });
+    }
+    if (this._numeric && !isNaN(this._numericmin) && Number(value) < this._numericmin) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be a numerical string greater than or equal ${this._numericmin}`],
+      });
+    }
+    if (this._numeric && !isNaN(this._numericmax) && Number(value) > this._numericmax) {
+      return this.postValidationCheck({
+        success: false,
+        error: [`must be a numerical string lower than or equal ${this._numericmax}`],
       });
     }
 
