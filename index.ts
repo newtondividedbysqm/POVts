@@ -406,7 +406,7 @@ export class StringSchema extends Schema<string> {
   }
 
   /**
-   * Sets the minimum value for validation.
+   * Sets the minimum length for validation.
    *
    * @param value The minimum value to be set.
    */
@@ -416,7 +416,7 @@ export class StringSchema extends Schema<string> {
     return this;
   }
   /**
-   * Sets the maximum value for validation.
+   * Sets the maximum length for validation.
    *
    * @param value The maximum value to be set.
    */
