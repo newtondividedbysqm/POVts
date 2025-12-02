@@ -1413,11 +1413,21 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
  *
  */
 export class LiteralSchema<T> extends Schema<T> {
-  private readonly literalValue?: T;
+  readonly literalValue: T;
+  private _coerce = false
 
   constructor(value: T) {
     super();
-    this.literalValue = value
+    this.literalValue = value;
+  }
+
+  /**
+   * Sets the schema to coerce the literal value, meaning we do a loose comparison check.
+   * If the loose comparison succeeds, the schema will return the defined literalValue
+   */
+  coerce() {
+    this._coerce = true
+    return this
   }
 
   /**
@@ -1431,14 +1441,14 @@ export class LiteralSchema<T> extends Schema<T> {
    * // result = { success: true, value: "hello" }
    * // value is typed as "hello"
    */
-  validate(value: T): ValidationResult<T> {
+  validate(value: unknown): ValidationResult<T> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
     else {value = preValidationResult.value}
 
 
-    if (value === this.literalValue) {
-      return this.postValidationCheck({ success: true, value: value });
+    if ((this._coerce && value == this.literalValue) || value === this.literalValue) {
+      return this.postValidationCheck({ success: true, value: value as T });
     } else {
       return this.postValidationCheck({ success: false, error: [`must be ${this.literalValue}, given was ${value}`] });
     }
