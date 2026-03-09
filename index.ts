@@ -683,6 +683,31 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
+  /**
+   * Sets the schema to slice the string from start index to end index.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   * @param start the index to start slicing from. Default is 0.
+   * @param end the index to end slicing. Default is the length of the string.
+   */
+  slice(start?: number, end?: number) {
+    this._transformRules.push((value): string => {
+      if (typeof value === "string") {
+        return value.slice(start, end);
+      } else { return value; }
+    });
+    return this;
+  }
+
+  /**
+   * Sets the schema to limit the string to a certain length by cutting off the rest.  
+   * This will be applied after a basic type validation/coercion but before any other validation. 
+   * @param length the target length to cut the string to. Default is the defined length constraint.
+   */
+  cut(length: number = this._length) {
+    this.slice(0, length);
+    return this;
+  }
+
   // MARK: string validation
   /**
    * Validates the given value against the defined string constraints.
