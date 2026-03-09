@@ -662,6 +662,27 @@ export class StringSchema extends Schema<string> {
   }
   trimAll = this.removeWhitespaces;
 
+  /**
+   * Sets the schema to pad the string to a certain length with a given character.  
+   * Unlike the js built-in padStart/padEnd this will NOT pad to an empty string 
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   * @param length the target length of the string after padding.
+   * @param char the character to use for padding. Default is " ".
+   * @param direction the direction to pad the string. Default is "START". Use "END" to pad at the end of the string.
+   */
+  pad(length: number, char: string = " ", direction: "START" | "END" = "START") {
+    this._transformRules.push((value): string => {
+      if (typeof value === "string" && value.length > 0 && value.length < length) {
+        if (direction === "START") {
+          return value.padStart(length, char);
+        } else {
+          return value.padEnd(length, char);
+        }
+      } else { return value; }
+    });
+    return this;
+  }
+
   // MARK: string validation
   /**
    * Validates the given value against the defined string constraints.
