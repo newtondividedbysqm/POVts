@@ -1406,6 +1406,30 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
       });
     }
 
+    ///transform the value before continuing with the validation
+    if (this._transformRules.length > 0) {
+      let transformedValue: T = this._applyTransforms(value as T)
+      //update the date object with the transformed value
+      if (isDate(transformedValue)) {
+        date = transformedValue;
+      } else {
+        date = new Date(transformedValue)
+      }
+
+      if (!isValidDateObject(date)) {
+        return this.postValidationCheck({
+          success: false,
+          error: [`Date Validation failed within the transform-pipeline, date is now ${value} of type ${typeof value}. Given was ${givenValue} of type ${typeof givenValue}`],
+        });
+      }
+      //also update the value with the transformed value
+      if (this._coerce) {
+        value = date;
+      } else {
+        value = transformedValue
+      }
+    }
+
     if (this._before && this._after && (date < this._after || date > this._before)) {
       return this.postValidationCheck({
         success: false,
