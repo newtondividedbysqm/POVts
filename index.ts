@@ -1498,6 +1498,17 @@ export class LiteralSchema<T> extends Schema<T> {
 
 
     if ((this._coerce && value == this.literalValue) || value === this.literalValue) {
+      ///transform the value before continuing with the validation
+      if (this._transformRules.length > 0) {
+        value = this._applyTransforms(this.literalValue)
+        if (value === this.literalValue) {
+          return this.postValidationCheck({
+            success: false,
+            error: [`Literal Validation failed within the transform-pipeline, literal is now ${value} of type ${typeof value}.`],
+          });
+        }
+      } else { value = this.literalValue }
+
       return this.postValidationCheck({ success: true, value: value as T });
     } else {
       return this.postValidationCheck({ success: false, error: [`must be ${this.literalValue}, given was ${value}`] });
