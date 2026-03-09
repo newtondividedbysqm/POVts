@@ -648,6 +648,20 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
+  /**
+   * Sets the schema to remove all whitespaces within the string.  
+   * This will be applied after a basic type validation/coercion but before any other validation.
+   */
+  removeWhitespaces() {
+    this.transform( (value):string => {
+      if (typeof value === "string") {
+        return value.replace(/\s+/g, '');
+      } else { return value; }
+    });
+    return this;
+  }
+  trimAll = this.removeWhitespaces;
+
   // MARK: string validation
   /**
    * Validates the given value against the defined string constraints.
