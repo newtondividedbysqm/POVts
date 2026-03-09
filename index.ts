@@ -950,6 +950,16 @@ export class NumberSchema extends Schema<number> {
         error: [`must be a number, given was ${typeof givenValue}`],
       });
     }
+    ///transform the value before continuing with the validation
+    if (this._transformRules.length > 0) {
+      value = this._applyTransforms(value)
+      if (!isValidNumber(value)) {
+        return this.postValidationCheck({
+          success: false,
+          error: [`Number Validation failed within the transform-pipeline, number is now ${value} of type ${typeof value}. Given was ${givenValue} of type ${typeof givenValue}`],
+        });
+      }
+    }
 
     if (this._int && !Number.isInteger(value)) {
       return this.postValidationCheck({
