@@ -171,6 +171,7 @@ abstract class Schema<T> {
    _isOptional: boolean = false;
 
   protected _preprocessRules: Array<(param: unknown) => unknown> = [] 
+  protected _transformRules: Array<(param: T) => T> = []
   protected _postprocessRules: Array<(param: T) => any> = []
 
   /**
@@ -277,6 +278,34 @@ abstract class Schema<T> {
   preform = this.preprocess
 
   /**
+   * sets the schema to call an anonymous function right after an initial type validation  
+   * 
+   * @param fn an anonymous function that takes and returns a value which must match with the type of the schema.
+   * @example 
+   * function appendBar(param: string) {
+   *   return param+"_BAR"
+   * }
+   * const strSchema = v.string().endsWith('_BAR').transform( appendBar )
+   * const result = strSchema.validate("Foo")
+   * // {
+   * //   "success": true,
+   * //   "value": "FOO_BAR"
+   * // } 
+   * 
+   * const errorResult = strSchema.validate(20)
+   * // {
+   * //   "success": true,
+   * //   "value": "must be a string, given was number"
+   * // } 
+   */
+  transform(fn: (param: T) => T) {
+    if (typeof fn !== "function") {
+      throw new Error(`Schema Definition Error: transform() parameter must be a function`);
+    }
+    this._transformRules.push(fn);
+    return this;
+  }
+
   /**
    * sets the schema to call an anonymous function after an successfull validation  
    * 
@@ -306,6 +335,16 @@ abstract class Schema<T> {
     return this as unknown as Schema<nextType>;
   }
   postform = this.postprocess
+
+
+  protected _applyTransforms(value: T): T {
+    let result = value;
+    for (const fn of this._transformRules) {
+      result = fn(result);
+    }
+    return result;
+  }
+
   /**
    * internal function to act before the start of the validations  
    * this includes success events upon a null or undefinded values
@@ -391,8 +430,6 @@ export class StringSchema extends Schema<string> {
   private _IBAN: boolean = false;
   private _BIC: boolean = false;
   private _postal: boolean = false;
-
-  private _transformRules: {(param:string): string;}[] = [] 
   private _ipVersion: false | 4 | 6 | 'any' = false;
 
   /**
@@ -561,33 +598,14 @@ export class StringSchema extends Schema<string> {
   }
 
   /**
-   * Adds a custom transformation function to the schema.  
-   * The function will be applied right after a basic js type validation/coercion but before all other validation.  
-   * The function should expect a string as parameter and return a string.
-   *
-   * @param transformFn The transformation function to be applied.
-   * @returns The current schema to allow method chaining.
-   * @throws Error if the provided parameter is not a function.
-   */
-  transform(transformFn: {(param:string): string;}) {
-    if (typeof transformFn !== "function") {
-      throw new Error(`StringSchema Transform Error: transform() parameter must be a function`);
-    }
-    this._transformRules.push(transformFn);
-    return this;
-  }
-  /// Transform methods
-  /**
    * Sets the schema to trim whitespace from the start and end of the string.  
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   trim() {
-    this._transformRules.push( (value):string => {
+    this.transform( (value):string => {
       if (typeof value === "string") {
         return value.trim();
-      } else {
-        throw new Error(`StringSchema Transform Error: trim() can only be applied to string values`);
-      }
+      } else { return value; }
     });
     return this;
   }
@@ -596,12 +614,10 @@ export class StringSchema extends Schema<string> {
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   toLowerCase() {
-    this._transformRules.push( (value):string => {
+    this.transform( (value):string => {
       if (typeof value === "string") {
         return value.toLowerCase();
-      } else {
-        throw new Error(`StringSchema Transform Error: toLowerCase() can only be applied to string values`);
-      }
+      } else { return value; }
     });
     return this;
   }
@@ -611,12 +627,10 @@ export class StringSchema extends Schema<string> {
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   toUpperCase() {
-    this._transformRules.push( (value):string => {
+    this.transform( (value):string => {
       if (typeof value === "string") {
         return value.toUpperCase()
-      } else {
-        throw new Error(`StringSchema Transform Error: toUpperCase() can only be applied to string values`);
-      }
+      } else { return value; }
     });
     return this;
   }
@@ -629,9 +643,7 @@ export class StringSchema extends Schema<string> {
     this._transformRules.push( (value):string => {
       if (typeof value === "string") {
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-      } else {
-        throw new Error(`StringSchema Transform Error: capitalized() can only be applied to string values`);
-      }
+      } else { return value; }
     });
     return this;
   }
@@ -671,11 +683,15 @@ export class StringSchema extends Schema<string> {
         error: [`must be a string, given was ${typeof givenValue}`],
       });
     }
-    
+
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      for (const transform of this._transformRules) {
-          <string>value == transform(value as string);
+      value = this._applyTransforms(value)
+      if (typeof value !== "string") {
+        return this.postValidationCheck({
+          success: false,
+          error: [`string failed within the transform-pipeline, string is now ${value} of type ${typeof value}. Given was ${givenValue} of type ${typeof givenValue}`],
+        });
       }
     }
 
