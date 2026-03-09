@@ -846,7 +846,6 @@ export class StringSchema extends Schema<string> {
  */
 export class NumberSchema extends Schema<number> {
   private _coerce: boolean = false;
-  private _transform: boolean = false;
   private _int: boolean = false;
   private _positive: boolean = false;
   private _negative: boolean = false;
@@ -861,16 +860,6 @@ export class NumberSchema extends Schema<number> {
   coerce() {
     this._coerce = true;
     return this;
-  }
-
-  /**
-   * Allows the shemata to transform the given value to fit in the given constraints if possible.  
-   * i.e. truncate floating points, clamp the number to min/max, or reverse the number sign  
-   * @deprecated NYI
-   */
-  transform() {
-    this._transform = true
-    return this
   }
 
   /**
