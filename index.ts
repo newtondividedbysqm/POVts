@@ -984,6 +984,45 @@ export class NumberSchema extends Schema<number> {
   }
   step = this.multipleOf;
 
+  //MARK: number transforms
+
+  /**
+   * Clamps the value within the defined minimum and maximum range.
+   * If both min and max are unset, the value is returned as is.
+   * @param min the minimum value to clamp to (defaults to the defined min constraint)
+   * @param max the maximum value to clamp to (defaults to the defined max constraint)
+   */
+  clamp(min = this._min, max = this._max) {
+    this.transform((value) => {
+      //we want method chaining to act order-independent, so we have to fetch min/max values again during validation
+      //without overwriting explicitly set values the deviate from the constraints
+      //we also apply positive/negative constraints if min/max is NaN
+      if (Number.isNaN(min)) {
+        min = (Number.isNaN(this._min) && this._positive) ? 1 : this._min
+      }
+      if (Number.isNaN(max)) {
+        max = (Number.isNaN(this._max) && this._negative) ? -1 : this._max
+      }
+      
+      if ( Number.isNaN(max) && Number.isNaN(min) ) {
+        // both min and max are unset
+        return value
+      }
+      else if ( Number.isNaN(max) && !Number.isNaN(min) ) {
+        //only min value is set
+        return Math.max(min, value) 
+      }
+      else if ( !Number.isNaN(max) && Number.isNaN(min) ) {
+        return Math.min(max, value)
+      }
+      else if ( !Number.isNaN(max) && !Number.isNaN(min) ) {
+        return Math.min(max, Math.max(min, value))
+      }
+      return NaN
+    })
+    return this
+  }
+
   /**
    * Validates the given value against the defined number constraints.
    *
