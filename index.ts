@@ -1148,6 +1148,17 @@ export class BooleanSchema extends Schema<boolean> {
       return this.postValidationCheck({ success: false, error: [`must be a ${this._useCustomCoercion ? 'boolish' : 'boolean'}, given was ${givenValue}`] });
     }
 
+    ///transform the value before continuing with the validation
+    if (this._transformRules.length > 0) {
+      value = this._applyTransforms(value)
+      if (typeof value !== "boolean") {
+        return this.postValidationCheck({
+          success: false,
+          error: [`Boolean Validation failed within the transform-pipeline, boolean is now ${value} of type ${typeof value}. Given was ${givenValue} of type ${typeof givenValue}`],
+        });
+      }
+    }
+
     if (this._truthy && !value) {
       return this.postValidationCheck({ success: false, error: [`must be truthy, given was ${givenValue}`] });
     }
