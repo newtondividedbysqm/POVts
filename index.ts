@@ -1563,6 +1563,17 @@ export class EnumSchema<T extends string | number> extends Schema<T> {
         error: [`must be one of ${this._enumValues.join(", ")}, given was ${value}`],
       });
     }
+    //apply transforms
+    if (this._transformRules.length > 0) {
+      value = this._applyTransforms(value as T[number]);
+
+      if (!this._enumValues.has(value as T[number])) {
+        return this.postValidationCheck({
+          success: false,
+          error: [`Enum Validation failed within the transform-pipeline, enum-value is now ${value} of type ${typeof value}.`],
+        });
+      }
+    }
   }
 }
 // #endregion
