@@ -703,8 +703,14 @@ export class StringSchema extends Schema<string> {
    * This will be applied after a basic type validation/coercion but before any other validation. 
    * @param length the target length to cut the string to. Default is the defined length constraint.
    */
-  cut(length: number = this._length) {
-    this.slice(0, length);
+  cut(length?: number) {
+    this._transformRules.push((value): string => {
+      length ??= this._length
+
+      if (typeof value === "string") {
+        return value.slice(0, length)
+      } else { return value }
+    });
     return this;
   }
 
@@ -992,17 +998,12 @@ export class NumberSchema extends Schema<number> {
    * @param min the minimum value to clamp to (defaults to the defined min constraint)
    * @param max the maximum value to clamp to (defaults to the defined max constraint)
    */
-  clamp(min = this._min, max = this._max) {
+  clamp(min?: number, max?: number) {
     this.transform((value) => {
-      //we want method chaining to act order-independent, so we have to fetch min/max values again during validation
-      //without overwriting explicitly set values the deviate from the constraints
-      //we also apply positive/negative constraints if min/max is NaN
-      if (Number.isNaN(min)) {
-        min = (Number.isNaN(this._min) && this._positive) ? 1 : this._min
-      }
-      if (Number.isNaN(max)) {
-        max = (Number.isNaN(this._max) && this._negative) ? -1 : this._max
-      }
+      //if this._min/_max still has the initial NaN value but positive/negative constraints are set,
+      //then we set the min/max values accordingly, otherwise we set
+      min ??= (Number.isNaN(this._min) && this._positive) ? 1 : this._min
+      max ??= (Number.isNaN(this._max) && this._negative) ? -1 : this._max
       
       if ( Number.isNaN(max) && Number.isNaN(min) ) {
         // both min and max are unset
