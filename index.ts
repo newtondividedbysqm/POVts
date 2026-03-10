@@ -1024,6 +1024,23 @@ export class NumberSchema extends Schema<number> {
   }
 
   /**
+   * Adds a transform Snaps the value to the nearest multiple of the given step value.
+   * @param multiplesOf the step value to snap to (defaults to the defined multipleOf constraint)
+   * @returns 
+   */
+  snapToMultiple(multipleOf?: number): this {
+    this.transform((value: number) => {
+      multipleOf ??= this._multipleOf
+
+      if (multipleOf !== multipleOf || multipleOf === 0) return value;
+      return Math.round(value / multipleOf) * multipleOf;
+    });
+
+    return this
+  }
+
+  // MARK: number validation
+  /**
    * Validates the given value against the defined number constraints.
    *
    * @param value The value to be validated.
