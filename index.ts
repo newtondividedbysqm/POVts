@@ -1497,17 +1497,16 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
    * // result = { success: true, value: new Date('2023-12-31') }
    * // value is created with the Date constructor and is typed as Date
    */
-  validate(value: any): ValidationResult<T> {
-    const preValidationResult = this.preValidationCheck(value);
-    if (preValidationResult.status === "RETURN") return preValidationResult.value;
+  validate(value: unknown): ValidationResult<T> {
+    const preValidationResult = this.preValidationCheck(value)
+    if (preValidationResult.status === "RETURN") {return preValidationResult.value}
     else {value = preValidationResult.value}
 
-    
     //the js Date constructor will return an 1970-01-01 if the value is null, so we filter that out
-    if (value === null) {
+    if (value === null || !(typeof value === "string" || typeof value === "number" || isDate(value)) ) {
       return this.postValidationCheck({
         success: false,
-        error: [`must be a valid Date representation, given was null`],
+        error: [`must be a valid Date representation, given was ${value === null ? 'null' : typeof value}`],
       });
     }
     let date = new Date(value);
@@ -1568,7 +1567,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
       });
     }
 
-    return this.postValidationCheck({ success: true, value: value });
+    return this.postValidationCheck({ success: true, value: value as T});
 
   }
 }
