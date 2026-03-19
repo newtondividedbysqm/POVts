@@ -606,10 +606,15 @@ export class StringSchema extends Schema<string> {
   }
 
   /**
-   * Sets the schema to validate a BIC.
+   * Sets the schema to validate a BIC/SWIFT code.
+   * Validates the format (ISO 9362) and that the embedded country code
+   * is a recognised ISO 3166-1 alpha-2 code.  
+   * Whitespace is stripped and the value is uppercased before validation.
    */
   BIC() {
     this._BIC = true;
+    this.trim();
+    this.toUpperCase();
     return this;
   }
 
@@ -888,10 +893,10 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    if (this._BIC && !isBICReg.test(value)) {
+    if (this._BIC && !isBIC(value)) {
       return this.postValidationCheck({
         success: false,
-        error: [`must be a valid BIC, given was ${value}`],
+        error: [`must be a valid BIC, given was ${givenValue}`],
       });
     }
 
@@ -2134,7 +2139,7 @@ const validISO31661Alpha2CountriesCodes = new Set([
   'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI',
   'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK',
   'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI',
-  'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW',
+  'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'
 ]);
 
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIBAN.js
@@ -2291,6 +2296,15 @@ function isIBAN(str: string, options: IBANValidationOptions = {}) {
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isBIC.js
 const isBICReg = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
 
+function isBIC(str: string): boolean {
+  const countryCode = str.slice(4, 6).toUpperCase();
+  // XK (Kosovo) is not an official ISO 3166-1 alpha-2 code but is recognised by SWIFT for BIC usage
+  if (!validISO31661Alpha2CountriesCodes.has(countryCode) && countryCode !== 'XK') {
+    return false;
+  }
+
+  return isBICReg.test(str)
+}
 
 
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js
