@@ -1,0 +1,23 @@
+{
+  "all": true,
+  "clean": true,
+  "src": ".",
+  "extension": ".ts",
+  "check-coverage": true,
+  "per-file": true,
+  "reporter": [
+    "text-summary",
+    "lcov",
+    "json-summary"
+  ],
+  "exclude": [
+    "**/*.d.ts",
+    "**/__mock__/**",
+    "coverage/**",
+    "usage.ts",
+    "test.ts"
+  ],
+  "include": [
+    "index.ts"
+  ]
+}
