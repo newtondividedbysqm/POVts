@@ -1,0 +1,15 @@
+# Deal with environment files
+.env
+.env.*
+# We'll allow an example .env file which can be copied
+!.env.example
+
+# Visual Studio Code configuration
+.vscode/
+# macOS settings file 
+.DS_Store
+
+
+node_modules/
+# Coverage directory used by testing tools
+coverage
