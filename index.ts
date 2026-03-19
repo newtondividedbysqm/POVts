@@ -403,6 +403,12 @@ abstract class Schema<T> {
 // #endregion
 
 // #region StringSchema
+type IBANCountryCode = keyof typeof ibanRegexThroughCountryCode;
+
+type IBANValidationOptions = {
+  allowlist?: IBANCountryCode[];
+  blocklist?: IBANCountryCode[];
+};
 /**
  * A schema for validating string values with various constraints.
  *
@@ -428,6 +434,7 @@ export class StringSchema extends Schema<string> {
   private _numericmax: number = NaN;
   private _ISO31661Alpha2: boolean = false;
   private _IBAN: boolean = false;
+  private _IBANOptions: IBANValidationOptions = {};
   private _BIC: boolean = false;
   private _postal: boolean = false;
   private _ipVersion: false | 4 | 6 | 'any' = false;
@@ -576,11 +583,25 @@ export class StringSchema extends Schema<string> {
 
   /**
    * Sets the schema to validate an IBAN.
-   * @param locale the ISO 3166-1 alpha-2 country code to be used for validation.
+   * Without arguments this will validate all supported IBAN countries.
+   * You can pass a single ISO 3166-1 alpha-2 country code as shorthand,
+   * or use an allowlist/blocklist to restrict the accepted countries.
    */
-  IBAN(locale: keyof typeof ibanRegexThroughCountryCode = "DE") {
+  IBAN(): this;
+  IBAN(countryCode: IBANCountryCode): this;
+  IBAN(options: IBANValidationOptions): this;
+  IBAN(countryCodeOrOptions?: IBANCountryCode | IBANValidationOptions) {
     this._IBAN = true;
-    this._locale = locale;
+
+    if (typeof countryCodeOrOptions === 'string') {
+      this._IBANOptions = { allowlist: [countryCodeOrOptions as keyof typeof ibanRegexThroughCountryCode] };
+    } else if (!isNullish(countryCodeOrOptions) && typeof countryCodeOrOptions === 'object' && (countryCodeOrOptions?.allowlist || countryCodeOrOptions?.blocklist)) {
+      this._IBANOptions = countryCodeOrOptions;
+    }
+
+    //set the schema to apply transforms before attempting to validate ibans
+    this.removeWhitespaces();
+    this.toUpperCase();
     return this;
   }
 
@@ -860,10 +881,10 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    if (this._IBAN && !ibanRegexThroughCountryCode[this._locale as keyof typeof ibanRegexThroughCountryCode].test(value)) {
+    if (this._IBAN && !isIBAN(value, this._IBANOptions)) {
       return this.postValidationCheck({
         success: false,
-        error: [`must be a valid ${[this._locale]}-IBAN, given was ${givenValue}`],
+        error: [`must be a valid IBAN, given was ${givenValue}`],
       });
     }
 
@@ -2200,8 +2221,76 @@ const ibanRegexThroughCountryCode = {
   XK: /^(XK[0-9]{2})\d{16}$/,
 };
 
+function hasOnlyValidIBANCountryCodes(countryCodeArray: readonly string[]) {
+  const countryCodeArrayFilteredWithObjectIbanCode = countryCodeArray
+    .filter(countryCode => !(countryCode in ibanRegexThroughCountryCode));
+
+  if (countryCodeArrayFilteredWithObjectIbanCode.length > 0) {
+    return false;
+  }
+
+  return true;
+}
+
+
+/**
+ * Check whether string has correct universal IBAN format
+ * The IBAN consists of up to 34 alphanumeric characters, as follows:
+ * Country Code using ISO 3166-1 alpha-2, two letters
+ * check digits, two digits and
+ * Basic Bank Account Number (BBAN), up to 30 alphanumeric characters.
+ * NOTE: Permitted IBAN characters are: digits [0-9] and the 26 latin alphabetic [A-Z]
+ *
+ * @param {string} str - string under validation
+ * @param {object} options - object to pass the countries to be either whitelisted or blacklisted
+ * @return {boolean}
+ */
+function hasValidIBANFormat(str: string, options: IBANValidationOptions = {}) {
+  // Strip white spaces and hyphens
+  const strippedStr = str.replace(/[\s\-]+/gi, '').toUpperCase();
+  const isoCountryCode = strippedStr.slice(0, 2).toUpperCase() as IBANCountryCode;
+
+  const isoCountryCodeInIbanRegexCodeObject = isoCountryCode in ibanRegexThroughCountryCode;
+
+  if (options.allowlist) {
+    if (!hasOnlyValidIBANCountryCodes(options.allowlist)) {
+      return false;
+    }
+
+    if (!options.allowlist.includes(isoCountryCode)) {
+      return false;
+    }
+  }
+
+  if (options.blocklist) {
+    if (options.blocklist?.includes(isoCountryCode)) {
+      return false;
+    }
+  }
+  
+
+  return (isoCountryCodeInIbanRegexCodeObject) &&
+    ibanRegexThroughCountryCode[isoCountryCode].test(strippedStr);
+}
+
+function hasValidIBANChecksum(str: string) {
+  const strippedStr = str.replace(/[^A-Z0-9]+/gi, '').toUpperCase(); // Keep only digits and A-Z latin alphabetic
+  const rearranged = strippedStr.slice(4) + strippedStr.slice(0, 4);
+  const alphaCapsReplacedWithDigits = rearranged.replace(/[A-Z]/g, (char) => String(char.charCodeAt(0) - 55));
+
+  const chunks: string[] = alphaCapsReplacedWithDigits.match(/\d{1,7}/g) ?? [];
+  const remainder = chunks.reduce((acc, value) => Number(String(acc) + value) % 97, 0);
+
+  return remainder === 1;
+}
+
+function isIBAN(str: string, options: IBANValidationOptions = {}) {
+  return hasValidIBANFormat(str, options) && hasValidIBANChecksum(str);
+}
+
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isBIC.js
 const isBICReg = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
+
 
 
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js
