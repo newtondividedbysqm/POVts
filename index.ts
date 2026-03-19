@@ -1663,12 +1663,18 @@ export class LiteralSchema<T> extends Schema<T> {
  * A schema for validating a value to be part of a set of values.
  *
  */
-export class EnumSchema<T extends string | number> extends Schema<T> {
-  private _enumValues: readonly T[];
+export class EnumSchema<T extends readonly (string | number)[]> extends Schema<T[number]> {
+  private _enumValues: Set<T[number]>;
+  private _coerceTo?: "string" | "number";
 
-  constructor(values: readonly T[]) {
+  constructor(values: T) {
     super();
-    this._enumValues = values
+    this._enumValues = new Set(values);
+  }
+
+  coerceTo(type: "string" | "number") {
+    this._coerceTo = type;
+    return this;
   }
 
   /**
@@ -1691,17 +1697,30 @@ export class EnumSchema<T extends string | number> extends Schema<T> {
    * // result = { success: true, value: "red" }
    * // value is typed as "red" | "green" | "blue"
    */
-  validate(value: unknown): ValidationResult<T> {
+  validate(value: unknown): ValidationResult<T[number]> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
+    else { value = preValidationResult.value; }
 
-    if (this._enumValues.includes(value as T)) {
-      return this.postValidationCheck({ success: true, value: value as T});
-    } else {
+    if (this._coerceTo) {
+      if (this._coerceTo === "string") {
+        const coercedValue = String(value);
+        if (coercedValue !== "[object Object]") {
+          value = coercedValue;
+        }
+      }
+      if (this._coerceTo === "number") {
+        const coercedValue = Number(value);
+        if (coercedValue === coercedValue) {
+          value = coercedValue;
+        }
+      }
+    }
+
+    if (!this._enumValues.has(value as T[number])) {
       return this.postValidationCheck({
         success: false,
-        error: [`must be one of ${this._enumValues.join(", ")}, given was ${value}`],
+        error: [`must be one of ${this._enumValuesAsText()}, given was ${value} of type ${typeof value}`],
       });
     }
     //apply transforms
@@ -1715,6 +1734,17 @@ export class EnumSchema<T extends string | number> extends Schema<T> {
         });
       }
     }
+
+    return this.postValidationCheck({ success: true, value: value as T[number] });
+  }
+
+  private _enumValuesAsText() {
+    return Array.from(this._enumValues).map(value => {
+      if (typeof value === "string") {
+        return `'${value}'`;
+      }
+      return value;
+    }).join(", ");
   }
 }
 // #endregion
