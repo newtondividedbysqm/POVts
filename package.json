@@ -1,0 +1,16 @@
+{
+    "scripts": {
+    "test": "c8 node -r ts-node/register -r tsconfig-paths/register ./test.ts",
+    "test:transpile-only": "ts-node --transpile-only -r tsconfig-paths/register ./test.ts",
+    "test:coverage": "c8 node -r ts-node/register/transpile-only -r tsconfig-paths/register ./test.ts",
+    "test:coverall": "c8 --reporter=text node -r ts-node/register/transpile-only -r tsconfig-paths/register ./test.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "c8": "^11.0.0",
+    "chalk": "^5.4.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.8.3"
+  }
+}
