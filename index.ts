@@ -622,6 +622,7 @@ export class StringSchema extends Schema<string> {
     this._ipVersion = version;
     return this;
   }
+  //MARK: string transforms
 
   /**
    * Sets the schema to trim whitespace from the start and end of the string.  
@@ -713,7 +714,7 @@ export class StringSchema extends Schema<string> {
    * Sets the schema to slice the string from start index to end index.  
    * This will be applied after a basic type validation/coercion but before any other validation.
    * @param start the index to start slicing from. Default is 0.
-   * @param end the index to end slicing. Default is the length of the string.
+   * @param end the index to end slicing. Default is the length of the string to be validated.
    */
   slice(start?: number, end?: number) {
     this._transformRules.push((value): string => {
@@ -1036,7 +1037,6 @@ export class NumberSchema extends Schema<number> {
         return value
       }
       else if ( Number.isNaN(max) && !Number.isNaN(min) ) {
-        //only min value is set
         return Math.max(min, value) 
       }
       else if ( !Number.isNaN(max) && Number.isNaN(min) ) {
@@ -1136,7 +1136,6 @@ export class NumberSchema extends Schema<number> {
         error: [`must be less than or equal ${this._max}, given was ${givenValue}`],
       });
     }
-    //we check for truthy 
     if (this._multipleOf && !(value % this._multipleOf === 0)) {
       return this.postValidationCheck({
         success: false,
@@ -1953,6 +1952,8 @@ export class ArraySchema<T> extends Schema<T[]> {
     }
   }
 }
+
+
 // #endregion
 
 ///////////
