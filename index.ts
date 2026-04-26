@@ -822,6 +822,7 @@ export class StringSchema extends Schema<string> {
     }
 
     //from zod/src/types.ts
+    // eslint-disable-next-line no-useless-escape
     const emailRegex = /^(?!\.)(?!.*\.\.)([A-Z0-9_'+\-\.]*)[A-Z0-9_+-]@([A-Z0-9][A-Z0-9\-]*\.)+[A-Z]{2,}$/i;
     if (this._email && !emailRegex.test(value)) {
       return this.postValidationCheck({
@@ -1247,7 +1248,7 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   private _coerceFromBoolish(value: unknown): boolean | undefined {
-    let normalizedValue = (value !== null && value !== undefined) ? String(value).trim().toLowerCase() : "";
+    const normalizedValue = (value !== null && value !== undefined) ? String(value).trim().toLowerCase() : "";
     
     if (this._customCoercion.truthy?.has(normalizedValue)) {
       return true;
@@ -1549,7 +1550,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
 
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      let transformedValue: T = this._applyTransforms(value as T)
+      const transformedValue: T = this._applyTransforms(value as T)
       //update the date object with the transformed value
       if (isDate(transformedValue)) {
         date = transformedValue;
