@@ -433,6 +433,7 @@ export class StringSchema extends Schema<string> {
   private _numericmin: number = NaN;
   private _numericmax: number = NaN;
   private _ISO31661Alpha2: boolean = false;
+  private _ISO31661Alpha2Options: {userAssignedCodes?: string[]} = {};
   private _IBAN: boolean = false;
   private _IBANOptions: IBANValidationOptions = {};
   private _BIC: boolean = false;
@@ -575,9 +576,31 @@ export class StringSchema extends Schema<string> {
 
   /**
    * Sets the schema to validate an ISO 3166-1 alpha-2 country code.
+   * By default, only officially assigned codes are accepted.
+   * You can pass an argument to add user-assigned codes to the list of valid alpha2 country codes.
    */
-  ISO31661Alpha2() {
+  ISO31661Alpha2(): this;
+  /** Adds a single user-assigned code to the list of valid alpha2 country codes 
+   * @param userAssignedCode Any 2-letter code from the user-assigned code range (AA, QM to QZ, XA to XZ, and ZZ) according to ISO 3166-1 alpha-2 standard.
+   * @example
+   * v.string().ISO31661Alpha2('XK') // accepts 'XK' as a valid alpha-2 code in addition to the officially assigned codes
+  */
+  ISO31661Alpha2(userAssignedCode: string): this;
+  /** Adds multiple user-assigned codes to the list of valid alpha2 country codes
+   * @param userAssignedCodes An array of 2-letter codes from the user-assigned code range (AA, QM to QZ, XA to XZ, and ZZ) according to ISO 3166-1 alpha-2 standard.
+   * @example
+   * v.string().ISO31661Alpha2(['XK', 'YY']) // accepts 'XK' and 'YY' as valid alpha-2 codes in addition to the officially assigned codes
+   */
+  ISO31661Alpha2(userAssignedCodes: string[]): this;
+  ISO31661Alpha2(userAssignedCodes?: string | string[]): this {
     this._ISO31661Alpha2 = true;
+
+    if (typeof userAssignedCodes === 'string') {
+      this._ISO31661Alpha2Options = { userAssignedCodes: [userAssignedCodes] };
+    } else if (Array.isArray(userAssignedCodes)) {
+      this._ISO31661Alpha2Options = { userAssignedCodes: userAssignedCodes };
+    }
+
     return this;
   }
 
@@ -881,7 +904,7 @@ export class StringSchema extends Schema<string> {
       });
     }
 
-    if (this._ISO31661Alpha2 && !validISO31661Alpha2CountriesCodes.has(value)) {
+    if (this._ISO31661Alpha2 && !isISO31661Alpha2(value, this._ISO31661Alpha2Options)) {
       return this.postValidationCheck({
         success: false,
         error: [`must be a valid ISO 3166-1 alpha-2 country code, given was ${givenValue}`],
@@ -2117,7 +2140,7 @@ export const alpha = {
 
 export const alphanumeric = {
   "en-US": /^[0-9A-Z]+$/i,
-  "az-AZ": /^[0-9A-VXYZÇƏĞİıÖŞÜ]+$/i,
+  "az-AZ": /^[0-9A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
   "bg-BG": /^[0-9А-Я]+$/i,
   "cs-CZ": /^[0-9A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
   "da-DK": /^[0-9A-ZÆØÅ]+$/i,
@@ -2159,20 +2182,52 @@ export const alphanumeric = {
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isISO31661Alpha2.js
 // prettier-ignore
 const validISO31661Alpha2CountriesCodes = new Set([
-  'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ', 'BA', 'BB', 'BD', 'BE',
-  'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ', 'CA', 'CC', 'CD',
-  'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ', 'DE', 'DJ', 'DK', 'DM',
-  'DO', 'DZ', 'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET', 'FI', 'FJ', 'FK', 'FM', 'FO', 'FR', 'GA', 'GB', 'GD', 'GE', 'GF',
-  'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY', 'HK', 'HM', 'HN', 'HR', 'HT', 'HU',
-  'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT', 'JE', 'JM', 'JO', 'JP', 'KE', 'KG', 'KH', 'KI', 'KM', 'KN',
-  'KP', 'KR', 'KW', 'KY', 'KZ', 'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY', 'MA', 'MC', 'MD', 'ME',
-  'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ', 'NA',
-  'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ', 'OM', 'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM',
-  'PN', 'PR', 'PS', 'PT', 'PW', 'PY', 'QA', 'RE', 'RO', 'RS', 'RU', 'RW', 'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI',
-  'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ', 'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK',
-  'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ', 'UA', 'UG', 'UM', 'US', 'UY', 'UZ', 'VA', 'VC', 'VE', 'VG', 'VI',
-  'VN', 'VU', 'WF', 'WS', 'YE', 'YT', 'ZA', 'ZM', 'ZW'
+  'AD', 'AE', 'AF', 'AG', 'AI', 'AL', 'AM', 'AO', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AW', 'AX', 'AZ',
+  'BA', 'BB', 'BD', 'BE', 'BF', 'BG', 'BH', 'BI', 'BJ', 'BL', 'BM', 'BN', 'BO', 'BQ', 'BR', 'BS', 'BT', 'BV', 'BW', 'BY', 'BZ',
+  'CA', 'CC', 'CD', 'CF', 'CG', 'CH', 'CI', 'CK', 'CL', 'CM', 'CN', 'CO', 'CR', 'CU', 'CV', 'CW', 'CX', 'CY', 'CZ',
+  'DE', 'DJ', 'DK', 'DM', 'DO', 'DZ',
+  'EC', 'EE', 'EG', 'EH', 'ER', 'ES', 'ET',
+  'FI', 'FJ', 'FK', 'FM', 'FO', 'FR',
+  'GA', 'GB', 'GD', 'GE', 'GF', 'GG', 'GH', 'GI', 'GL', 'GM', 'GN', 'GP', 'GQ', 'GR', 'GS', 'GT', 'GU', 'GW', 'GY',
+  'HK', 'HM', 'HN', 'HR', 'HT', 'HU',
+  'ID', 'IE', 'IL', 'IM', 'IN', 'IO', 'IQ', 'IR', 'IS', 'IT',
+  'JE', 'JM', 'JO', 'JP',
+  'KE', 'KG', 'KH', 'KI', 'KM', 'KN', 'KP', 'KR', 'KW', 'KY', 'KZ',
+  'LA', 'LB', 'LC', 'LI', 'LK', 'LR', 'LS', 'LT', 'LU', 'LV', 'LY',
+  'MA', 'MC', 'MD', 'ME', 'MF', 'MG', 'MH', 'MK', 'ML', 'MM', 'MN', 'MO', 'MP', 'MQ', 'MR', 'MS', 'MT', 'MU', 'MV', 'MW', 'MX', 'MY', 'MZ',
+  'NA', 'NC', 'NE', 'NF', 'NG', 'NI', 'NL', 'NO', 'NP', 'NR', 'NU', 'NZ',
+  'OM',
+  'PA', 'PE', 'PF', 'PG', 'PH', 'PK', 'PL', 'PM', 'PN', 'PR', 'PS', 'PT', 'PW', 'PY',
+  'QA',
+  'RE', 'RO', 'RS', 'RU', 'RW',
+  'SA', 'SB', 'SC', 'SD', 'SE', 'SG', 'SH', 'SI', 'SJ', 'SK', 'SL', 'SM', 'SN', 'SO', 'SR', 'SS', 'ST', 'SV', 'SX', 'SY', 'SZ',
+  'TC', 'TD', 'TF', 'TG', 'TH', 'TJ', 'TK', 'TL', 'TM', 'TN', 'TO', 'TR', 'TT', 'TV', 'TW', 'TZ',
+  'UA', 'UG', 'UM', 'US', 'UY', 'UZ',
+  'VA', 'VC', 'VE', 'VG', 'VI', 'VN', 'VU',
+  'WF', 'WS',
+  'YE', 'YT',
+  'ZA', 'ZM', 'ZW',
 ]);
+
+const alpha2CountryCode = /^[a-zA-Z]{2}$/;
+
+function isISO31661Alpha2(str: string, options: { userAssignedCodes?: string[] } = {}) {
+
+  const { userAssignedCodes } = options;
+  const validUserAssignedCodes = (userAssignedCodes || [])
+    .reduce((accumulator: string[], userAssignedCode) => {
+      if (alpha2CountryCode.test(userAssignedCode)) {
+        accumulator.push(userAssignedCode.toUpperCase());
+      }
+      return accumulator;
+    }, []);
+
+  if (validUserAssignedCodes.includes(str.toUpperCase())) {
+    return true;
+  }
+
+  return validISO31661Alpha2CountriesCodes.has(str.toUpperCase());
+}
 
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIBAN.js
 const ibanRegexThroughCountryCode = {

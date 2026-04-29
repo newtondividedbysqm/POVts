@@ -313,13 +313,18 @@ describe('String Validation', () => {
 
   test('StringSchema with ISO31661Alpha2 constriants', () => {
     const strSchemaISO31661Alpha2 = v.string().ISO31661Alpha2()
-    const GermanyAsISO31661Alpha2 = "DE"
-    const GermanyAsISO31661Alpha3 = "DEU"
-    const USAAsISO31661Alpha2 = "US"
+    const strSchemaISO31661Alpha2WithUserAssignedCodeXK = v.string().ISO31661Alpha2("XK")
+    const strSchemaISO31661Alpha2WithUserAssignedCodesXKAndXX = v.string().ISO31661Alpha2(["XK", "XX"])
+    const strSchemaISO31661Alpha2WithInvlaidUserAssignedCode = v.string().ISO31661Alpha2(["123", "abc"])
 
-    expect( strSchemaISO31661Alpha2.validate(GermanyAsISO31661Alpha2).success, "should validate \"DE\"" ).toBeTrue()
-    expect( strSchemaISO31661Alpha2.validate(USAAsISO31661Alpha2).success, "should validate \"US\"" ).toBeTrue()
-    expect( strSchemaISO31661Alpha2.validate(GermanyAsISO31661Alpha3).success, "should NOT validate \"DEU\"" ).toBeFalse()
+    expect( strSchemaISO31661Alpha2.validate("DE").success, "should validate \"DE\"" ).toBeTrue()
+    expect( strSchemaISO31661Alpha2.validate("US").success, "should validate \"US\"" ).toBeTrue()
+    expect( strSchemaISO31661Alpha2.validate("DEU").success, "should NOT validate \"DEU\"" ).toBeFalse()
+    expect( strSchemaISO31661Alpha2.validate("XK").success, "should NOT validate unofficial alpha2 codes\"XK\"" ).toBeFalse()
+    expect( strSchemaISO31661Alpha2WithUserAssignedCodeXK.validate("XK").success, "should validate the user assigned code \"XK\"" ).toBeTrue()
+    expect( strSchemaISO31661Alpha2WithUserAssignedCodesXKAndXX.validate("XX").success, "should validate the user assigned code \"XX\"" ).toBeTrue()
+    expect( strSchemaISO31661Alpha2WithInvlaidUserAssignedCode.validate("123").success, "should NOT validate invalid user assigned code \"123\"" ).toBeFalse()
+
   });
 
   test('StringSchema with IBAN constriants', () => {
