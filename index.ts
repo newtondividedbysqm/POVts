@@ -2110,11 +2110,12 @@ const postal = { /* eslint-disable no-useless-escape */
   ZM: fiveDigit,
 };
 
+// MARK: alpha
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/alpha.js
-export const alpha = {
+export const alpha = { /* eslint-disable no-misleading-character-class */
   "en-US": /^[A-Z]+$/i,
-  "az-AZ": /^[A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
-  "bg-BG": /^[Ð-Ð¯]+$/i,
+  "az-AZ": /^[A-VXYZÇƏĞİıÖŞÜ]+$/i,
+  "bg-BG": /^[А-Я]+$/i,
   "cs-CZ": /^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
   "da-DK": /^[A-ZÆØÅ]+$/i,
   "de-DE": /^[A-ZÄÖÜß]+$/i,
@@ -2153,14 +2154,17 @@ export const alpha = {
   "si-LK": /^[\u0D80-\u0DFF]+$/,
 };
 
-export const alphanumeric = {
+// MARK: alphanumeric
+export const alphanumeric = { /* eslint-disable no-misleading-character-class */
   "en-US": /^[0-9A-Z]+$/i,
-  "bg-BG": /^[0-9Ð-Ð¯]+$/i,
-  "cs-CZ": /^[0-9A-ZÃÄŒÄŽÃ‰ÄšÃÅ‡Ã“Å˜Å Å¤ÃšÅ®ÃÅ½]+$/i,
-  "da-DK": /^[0-9A-ZÃ†Ã˜Ã…]+$/i,
-  "el-GR": /^[0-9Î‘-Ï‰]+$/i,
-  "es-ES": /^[0-9A-ZÃÃ‰ÃÃ‘Ã“ÃšÃœ]+$/i,
-  "fi-FI": /^[0-9A-ZÃ…Ã„Ã–]+$/i,
+  "az-AZ": /^[0-9A-VXYZÇƏĞİıÖŞÜ]+$/i,
+  "bg-BG": /^[0-9А-Я]+$/i,
+  "cs-CZ": /^[0-9A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
+  "da-DK": /^[0-9A-ZÆØÅ]+$/i,
+  "de-DE": /^[0-9A-ZÄÖÜß]+$/i,
+  "el-GR": /^[0-9Α-ω]+$/i,
+  "es-ES": /^[0-9A-ZÁÉÍÑÓÚÜ]+$/i,
+  "fi-FI": /^[0-9A-ZÅÄÖ]+$/i,
   "fr-FR": /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   "it-IT": /^[0-9A-ZÀÉÈÌÎÓÒÙ]+$/i,
   "ja-JP": /^[0-9０-９ぁ-んァ-ヶｦ-ﾟ一-龠ー・。、]+$/i,
@@ -2187,12 +2191,19 @@ export const alphanumeric = {
   he: /^[0-9א-ת]+$/,
   fa: /^['0-9آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی۱۲۳۴۵۶۷۸۹۰']+$/i,
   bn: /^['ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻']+$/,
-  eo: /^[0-9ABCÄˆD-GÄœHÄ¤IJÄ´K-PRSÅœTUÅ¬VZ]+$/i,
+  eo: /^[0-9ABCĈD-GĜHĤIJĴK-PRSŜTUŬVZ]+$/i,
   "hi-IN": /^[\u0900-\u0963]+[\u0966-\u097F]*$/i,
   "si-LK": /^[0-9\u0D80-\u0DFF]+$/,
   "ta-IN": /^[0-9\u0B80-\u0BFF.]+$/i,
+  "te-IN": /^[0-9\u0C00-\u0C7F.]+$/i,
+  "kn-IN": /^[0-9\u0C80-\u0CFF.]+$/i,
+  "ml-IN": /^[0-9\u0D00-\u0D7F.]+$/i,
+  "gu-IN": /^[0-9\u0A80-\u0AFF.]+$/i,
+  "pa-IN": /^[0-9\u0A00-\u0A7F.]+$/i,
+  "or-IN": /^[0-9\u0B00-\u0B7F.]+$/i,
 };
 
+// MARK: ISO-Alpha2
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isISO31661Alpha2.js
 // prettier-ignore
 const validISO31661Alpha2CountriesCodes = new Set([
