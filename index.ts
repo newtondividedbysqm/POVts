@@ -606,12 +606,23 @@ export class StringSchema extends Schema<string> {
 
   /**
    * Sets the schema to validate an IBAN.
-   * Without arguments this will validate all supported IBAN countries.
-   * You can pass a single ISO 3166-1 alpha-2 country code as shorthand,
-   * or use an allowlist/blocklist to restrict the accepted countries.
+   * By default this will validate all supported IBAN countries.
+   * You can pass a single ISO 3166-1 alpha-2 country code to only validate IBANs from that specific country,
+   * or use an allowlist/blocklist to further restrict the accepted countries.
    */
   IBAN(): this;
+  /** Sets the schema to validate an IBAN from a specific Country 
+   * @param countryCode The ISO 3166-1 alpha-2 country code to be used for validation.
+   * @example
+   * v.string().IBAN('DE') // only accepts German IBANs
+   */
   IBAN(countryCode: IBANCountryCode): this;
+  /** Sets the schema to validate with an allowlist/blocklist to restrict the accepted countries
+   * @param options An Object with an allowlist/blocklist property
+   * @example
+   * v.string().IBAN({ allowlist: ['DE', 'AT'] }) // only accepts German and Austrian IBANs
+   * v.string().IBAN({ blocklist: ['DE', 'AT'] }) // accepts IBANs from all supported countries except Germany and Austria
+   */
   IBAN(options: IBANValidationOptions): this;
   IBAN(countryCodeOrOptions?: IBANCountryCode | IBANValidationOptions) {
     this._IBAN = true;
@@ -1051,8 +1062,8 @@ export class NumberSchema extends Schema<number> {
    */
   clamp(min?: number, max?: number) {
     this.transform((value) => {
-      //if this._min/_max still has the initial NaN value but positive/negative constraints are set,
-      //then we set the min/max values accordingly, otherwise we set
+      // if min/max are not provided within the clamp value, we take them from the defined constraints of the schema
+      // if the defined constraints are also unset, we check if the positive/negative constraint is set and set the min/max to 1/-1 respectively to prevent NaN results from the clamping,
       min ??= (Number.isNaN(this._min) && this._positive) ? 1 : this._min
       max ??= (Number.isNaN(this._max) && this._negative) ? -1 : this._max
       
@@ -2013,9 +2024,13 @@ export class ArraySchema<T> extends Schema<T[]> {
 ///////////
 export const v = Validator;
 ///////////
-
 // #region Regex-Patterns
 
+
+
+
+
+// MARK: Postal
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isPostalCode.js
 // common patterns
 const threeDigit = /^\d{3}$/;
@@ -2023,7 +2038,7 @@ const fourDigit = /^\d{4}$/;
 const fiveDigit = /^\d{5}$/;
 const sixDigit = /^\d{6}$/;
 
-const postal = {
+const postal = { /* eslint-disable no-useless-escape */
   AD: /^AD\d{3}$/,
   AT: fourDigit,
   AU: fourDigit,
@@ -2098,8 +2113,8 @@ const postal = {
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/alpha.js
 export const alpha = {
   "en-US": /^[A-Z]+$/i,
-  "az-AZ": /^[A-VXYZÇƏĞİıÖŞÜ]+$/i,
-  "bg-BG": /^[А-Я]+$/i,
+  "az-AZ": /^[A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
+  "bg-BG": /^[Ð-Ð¯]+$/i,
   "cs-CZ": /^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
   "da-DK": /^[A-ZÆØÅ]+$/i,
   "de-DE": /^[A-ZÄÖÜß]+$/i,
@@ -2140,14 +2155,12 @@ export const alpha = {
 
 export const alphanumeric = {
   "en-US": /^[0-9A-Z]+$/i,
-  "az-AZ": /^[0-9A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
-  "bg-BG": /^[0-9А-Я]+$/i,
-  "cs-CZ": /^[0-9A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
-  "da-DK": /^[0-9A-ZÆØÅ]+$/i,
-  "de-DE": /^[0-9A-ZÄÖÜẞß]+$/i,
-  "el-GR": /^[0-9Α-ω]+$/i,
-  "es-ES": /^[0-9A-ZÁÉÍÑÓÚÜ]+$/i,
-  "fi-FI": /^[0-9A-ZÅÄÖ]+$/i,
+  "bg-BG": /^[0-9Ð-Ð¯]+$/i,
+  "cs-CZ": /^[0-9A-ZÃÄŒÄŽÃ‰ÄšÃÅ‡Ã“Å˜Å Å¤ÃšÅ®ÃÅ½]+$/i,
+  "da-DK": /^[0-9A-ZÃ†Ã˜Ã…]+$/i,
+  "el-GR": /^[0-9Î‘-Ï‰]+$/i,
+  "es-ES": /^[0-9A-ZÃÃ‰ÃÃ‘Ã“ÃšÃœ]+$/i,
+  "fi-FI": /^[0-9A-ZÃ…Ã„Ã–]+$/i,
   "fr-FR": /^[0-9A-ZÀÂÆÇÉÈÊËÏÎÔŒÙÛÜŸ]+$/i,
   "it-IT": /^[0-9A-ZÀÉÈÌÎÓÒÙ]+$/i,
   "ja-JP": /^[0-9０-９ぁ-んァ-ヶｦ-ﾟ一-龠ー・。、]+$/i,
@@ -2174,9 +2187,10 @@ export const alphanumeric = {
   he: /^[0-9א-ת]+$/,
   fa: /^['0-9آاءأؤئبپتثجچحخدذرزژسشصضطظعغفقکگلمنوهةی۱۲۳۴۵۶۷۸۹۰']+$/i,
   bn: /^['ঀঁংঃঅআইঈউঊঋঌএঐওঔকখগঘঙচছজঝঞটঠডঢণতথদধনপফবভমযরলশষসহ়ঽািীুূৃৄেৈোৌ্ৎৗড়ঢ়য়ৠৡৢৣ০১২৩৪৫৬৭৮৯ৰৱ৲৳৴৵৶৷৸৹৺৻']+$/,
-  eo: /^[0-9ABCĈD-GĜHĤIJĴK-PRSŜTUŬVZ]+$/i,
+  eo: /^[0-9ABCÄˆD-GÄœHÄ¤IJÄ´K-PRSÅœTUÅ¬VZ]+$/i,
   "hi-IN": /^[\u0900-\u0963]+[\u0966-\u097F]*$/i,
   "si-LK": /^[0-9\u0D80-\u0DFF]+$/,
+  "ta-IN": /^[0-9\u0B80-\u0BFF.]+$/i,
 };
 
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isISO31661Alpha2.js
@@ -2229,6 +2243,7 @@ function isISO31661Alpha2(str: string, options: { userAssignedCodes?: string[] }
   return validISO31661Alpha2CountriesCodes.has(str.toUpperCase());
 }
 
+// MARK: IBAN
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIBAN.js
 const ibanRegexThroughCountryCode = {
   AD: /^(AD[0-9]{2})\d{8}[A-Z0-9]{12}$/,
@@ -2393,7 +2408,7 @@ function isBIC(str: string): boolean {
   return isBICReg.test(str)
 }
 
-
+// MARK: IP-Addresses
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js
 const IPv4SegmentFormat = '(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])';
 const IPv4AddressFormat = `(${IPv4SegmentFormat}[.]){3}${IPv4SegmentFormat}`;
