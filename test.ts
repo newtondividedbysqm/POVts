@@ -144,8 +144,8 @@ describe('Validator', () => {
   });
 
   test('union schemas', () => {
-    const plainUnionSchema = v.string().or(v.number())
-    
+    const plainOrSchema = v.string().or(v.number())
+    const plainUnionSchema = v.union([v.string(), v.number()])
     const userOrCompanySchema = v.object({
       name: v.string(),
       age: v.number(),
@@ -181,6 +181,9 @@ describe('Validator', () => {
     expect( plainUnionSchema.validate("test").success, "should validate a string value" ).toBeTrue()
     expect( plainUnionSchema.validate(1234).success, "should validate a number value" ).toBeTrue()
     expect( plainUnionSchema.validate(true).success, "should NOT validate a boolean value" ).toBeFalse()
+    expect( plainOrSchema.validate("test").success, "should validate a string value" ).toBeTrue()
+    expect( plainOrSchema.validate(1234).success, "should validate a number value" ).toBeTrue()
+    expect( plainOrSchema.validate(true).success, "should NOT validate a boolean value" ).toBeFalse()
     
     expect( userOrCompanySchema.validate(userObject).success, "should validate a user object" ).toBeTrue()
     expect( getValidatedValue(userOrCompanySchema.validate(userObject)), "should hold the user object when validated" ).toEqual(userObject)

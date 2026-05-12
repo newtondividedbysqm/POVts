@@ -1,5 +1,6 @@
 type ValidationResult<T> = { success: true; value: T } | { success: false; error: string[] };
 type CheckResult<T> = {status: "RETURN", value: ValidationResult<T>} | {status: "CONTINUE", value: unknown} 
+type InferSchemaValue<S> = S extends Schema<infer V> ? V : never;
 
 // region: Helper Functions
 /** internal function to narrow type to be nullish */
@@ -141,6 +142,19 @@ export class Validator {
   }
 
   /**
+   * Creates a UnionSchema to validate values against multiple schemas.
+   * Validation succeeds when at least one schema branch succeeds.
+   *
+   * @param schemas - The schema branches that compose the union.
+   * @returns A UnionSchema instance for union validation.
+   */
+  static union<const ArrayOfSchemas extends readonly [Schema<any>, Schema<any>, ...Schema<any>[]]>(
+    schemas: ArrayOfSchemas,
+  ) {
+    return new UnionSchema<InferSchemaValue<ArrayOfSchemas[number]>>([...schemas]);
+  }
+
+  /**
    * Creates an ObjectSchema to validate objects with a defined shape.
    *
    * @param shape - An object defining the expected shape of the object to be validated.
@@ -249,6 +263,15 @@ abstract class Schema<T> {
   optional(): this {
     this._isOptional = true;
     return this;
+  }
+
+  /**
+   * Sets the schema to use an alternative schema if the current schema fails validation.
+   * @param alternativeSchema another schema that will be tried if the current schema fails validation
+   * @returns a new schema that accepts either the current type or the alternative type
+   */
+  or<AS>(alternativeSchema: Schema<AS>): UnionSchema<T | AS> {
+    return new UnionSchema([this, alternativeSchema]);
   }
 
   /**
@@ -2019,6 +2042,37 @@ export class ArraySchema<T> extends Schema<T[]> {
 }
 
 
+// #endregion
+
+// #region UnionSchema
+/**
+ * A schema that validates a value against multiple schemas, succeeding if any one of them passes.
+ * Created by calling `.or()` on any schema or `v.union([...])`.
+ */
+export class UnionSchema<T> extends Schema<T> {
+  private _schemas: Schema<any>[];
+
+  constructor(schemas: Schema<any>[]) {
+    super();
+    this._schemas = schemas;
+  }
+
+  or<U>(alternativeSchema: Schema<U>): UnionSchema<T | U> {
+    return new UnionSchema<T | U>([...this._schemas, alternativeSchema]);
+  }
+
+  validate(value: unknown): ValidationResult<T> {
+    const branchErrors: string[] = [];
+    for (let i = 0; i < this._schemas.length; i++) {
+      const schema = this._schemas[i];
+      const result = schema.validate(value);
+      
+      if (result.success) { return this.postValidationCheck(result as ValidationResult<T>) }
+      else { branchErrors.push(`Union branch ${i + 1} validation failed: ${JSON.stringify(result.error)}`); }
+    }
+    return this.postValidationCheck({ success: false, error: branchErrors });
+  }
+}
 // #endregion
 
 ///////////
