@@ -1843,9 +1843,9 @@ type OptionalKeys<T extends Record<string, Schema<any>>> = {
 type RequiredKeys<T extends Record<string, Schema<any>>> = Exclude<keyof T, OptionalKeys<T>>;
 
 type InferShape<T extends Record<string, Schema<any>>> = {
-  [K in RequiredKeys<T>]: T[K] extends Schema<infer V> ? V : never;
+  [K in RequiredKeys<T>]: InferSchemaValue<T[K]>;
 } & {
-  [K in OptionalKeys<T>]?: T[K] extends Schema<infer V> ? V : never;
+  [K in OptionalKeys<T>]?: InferSchemaValue<T[K]>;
 };
 
 /**
