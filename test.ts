@@ -662,6 +662,20 @@ describe('Date Validation', () => {
    
   });
 
+  test('DateSchema with age constraints', () => {
+    const today = new Date()
+    const birthdateOfSomeoneTurning18Today = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate())
+    const birthdateOfSomeoneTurning18Tomorrow = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() + 1)
+    const birthdateOfSomeoneTurning18Yesterday = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate() - 1)
+    const dateSchemaWithConstraints = v.date().age({ min: 18 })
+
+    expect( dateSchemaWithConstraints.validate(birthdateOfSomeoneTurning18Yesterday).success, "should validate a birthdate of someone who turned 18 yesterday" ).toBeTrue()
+    expect( dateSchemaWithConstraints.validate(birthdateOfSomeoneTurning18Tomorrow).success, "should NOT validate a birthdate of someone turning 18 tomorrow" ).toBeFalse()
+    expect( dateSchemaWithConstraints.validate(birthdateOfSomeoneTurning18Today).success, "should validate a birthdate of someone turning 18 today" ).toBeTrue() 
+    expect( getValidatedValue(dateSchemaWithConstraints.validate(birthdateOfSomeoneTurning18Today)), "should hold the given value of the validated date" ).toEqual(birthdateOfSomeoneTurning18Today)    
+   
+  });
+
   test('DateSchema enforced coercion', () => {
     const dateSchemaThatFallbacks = v.date().populate()
     const oneYearInMilliseconds = 365 * 24 * 60 * 60 * 1000

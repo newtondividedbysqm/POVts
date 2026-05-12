@@ -1462,6 +1462,29 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
   min = this.after
 
   /**
+   * A Helper which sets the schema to validate a date (of birth) to be within a certain age range
+   * @params ageConstraints an object with min and/or max age constraints in years.
+   * 
+   *
+   */
+  age(ageConstraints: {min?: number, max?: number}): this {
+    const { min, max } = ageConstraints || {};
+
+    if (min !== undefined) {
+      this._before = new Date();
+      this._before.setFullYear(this._before.getFullYear() - min);
+      this._generateBefore = this._before
+    }
+    if (max !== undefined) {
+      this._after = new Date();
+      this._after.setFullYear(this._after.getFullYear() - max);
+      this._generateAfter = this._after
+    }
+    
+    return this;
+  }
+
+  /**
    * Sets the schema to format the date as a string.
    * the string format defaults to the international date pattern of "YYYY-MM-DD"
    * 
