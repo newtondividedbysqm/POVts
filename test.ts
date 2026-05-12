@@ -16,7 +16,7 @@ type ValidationResultLike<T> =
   | { success: false; error: string[] };
 
   /** Type safe helper to access the validatedResult value */
-const validatedValue = <T>(result: ValidationResultLike<T>): T =>
+const getValidatedValue = <T>(result: ValidationResultLike<T>): T =>
   result.success ? result.value : (undefined as T);
 
 describe('Validator', () => {
@@ -82,21 +82,21 @@ describe('Validator', () => {
     const testLiteral = "test"
     const testEnum = "test2"
 
-    expect( validatedValue(stringSchema.validate(testString)), "should hold the string value" ).toBe(testString)
-    expect( validatedValue(numberSchema.validate(testNumber)), "should hold the number value" ).toBe(testNumber)
-    expect( validatedValue(booleanSchema.validate(testBoolean)), "should hold the boolean value" ).toBe(testBoolean)
-    expect( validatedValue(dateSchema.validate(testDate)), "should hold the date value" ).toEqual(testDate)
-    expect( validatedValue(arraySchema.validate(testArray)), "should hold the array  value" ).toEqual(testArray)
-    expect( validatedValue(objectShema.validate(testObject)), "should hold the object  value" ).toEqual(testObject)
-    expect( validatedValue(literalSchema.validate(testLiteral)), "should hold the literal  value" ).toBe(testLiteral)
-    expect( validatedValue(enumSchema.validate(testEnum)), "should hold the enum value" ).toBe(testEnum)
+    expect( getValidatedValue(stringSchema.validate(testString)), "should hold the string value" ).toBe(testString)
+    expect( getValidatedValue(numberSchema.validate(testNumber)), "should hold the number value" ).toBe(testNumber)
+    expect( getValidatedValue(booleanSchema.validate(testBoolean)), "should hold the boolean value" ).toBe(testBoolean)
+    expect( getValidatedValue(dateSchema.validate(testDate)), "should hold the date value" ).toEqual(testDate)
+    expect( getValidatedValue(arraySchema.validate(testArray)), "should hold the array  value" ).toEqual(testArray)
+    expect( getValidatedValue(objectShema.validate(testObject)), "should hold the object  value" ).toEqual(testObject)
+    expect( getValidatedValue(literalSchema.validate(testLiteral)), "should hold the literal  value" ).toBe(testLiteral)
+    expect( getValidatedValue(enumSchema.validate(testEnum)), "should hold the enum value" ).toBe(testEnum)
   });
 
   test('nullable schemas', () => {
     const nullableSchema = v.string().nullable()
    
     expect( nullableSchema.validate(null).success, "should validate a null value" ).toBeTrue()
-    expect( validatedValue(nullableSchema.validate(null)), "should hold null when given null" ).toBeNull()
+    expect( getValidatedValue(nullableSchema.validate(null)), "should hold null when given null" ).toBeNull()
     expect( nullableSchema.validate(undefined).success, "should NOT validate undefined value" ).toBeFalse()
     expect( nullableSchema.validate(1234).success, "should NOT validate a failed schema" ).toBeFalse()
   });
@@ -105,9 +105,9 @@ describe('Validator', () => {
       const nullishShema = v.string().nullish()
     
       expect( nullishShema.validate(null).success, "should validate a null value" ).toBeTrue()
-      expect( validatedValue(nullishShema.validate(null)), "should hold null when given null" ).toBeNull()
+      expect( getValidatedValue(nullishShema.validate(null)), "should hold null when given null" ).toBeNull()
       expect( nullishShema.validate(undefined).success, "should validate an undefined value" ).toBeTrue()
-      expect( validatedValue(nullishShema.validate(undefined)), "should hold null when given undefined" ).toBeNull()
+      expect( getValidatedValue(nullishShema.validate(undefined)), "should hold null when given undefined" ).toBeNull()
       expect( nullishShema.validate(1234).success, "should NOT validate a failed schema" ).toBeFalse()
   });
 
@@ -117,8 +117,8 @@ describe('Validator', () => {
 
       expect( defaultSchema.validate(null).success, "should validate a null value" ).toBeTrue()
       expect( defaultSchema.validate(undefined).success, "should validate an undefined value" ).toBeTrue()
-      expect( validatedValue(defaultSchema.validate(undefined)), "should return the default when given undefined" ).toBe(defaultValue)
-      expect( validatedValue(defaultSchema.validate(null)), "should return the default when given null" ).toBe(defaultValue)
+      expect( getValidatedValue(defaultSchema.validate(undefined)), "should return the default when given undefined" ).toBe(defaultValue)
+      expect( getValidatedValue(defaultSchema.validate(null)), "should return the default when given null" ).toBe(defaultValue)
       expect( defaultSchema.validate(1234).success, "should NOT validate a failed validation" ).toBeFalse()
   });
 
@@ -128,15 +128,15 @@ describe('Validator', () => {
       
       expect( catchSchema.validate(null).success, "should validate a null value" ).toBeTrue()
       expect( catchSchema.validate(undefined).success, "should validate an undefined value" ).toBeTrue()
-      expect( validatedValue(catchSchema.validate(undefined)), "should return the default when given undefined" ).toBe(catchValue)
-      expect( validatedValue(catchSchema.validate(null)), "should return the default when given null" ).toBe(catchValue)
+      expect( getValidatedValue(catchSchema.validate(undefined)), "should return the default when given undefined" ).toBe(catchValue)
+      expect( getValidatedValue(catchSchema.validate(null)), "should return the default when given null" ).toBe(catchValue)
       expect( catchSchema.validate(1234), "should validate a failed validation and hold the catch value" ).toEqual({success: true, value: catchValue})
   });
 
   test('optional schemas', () => {
       const optionalSchema = v.string().optional()
     
-      expect( validatedValue(optionalSchema.validate(1234)), "should remove the value of failed validations" ).toBeUndefined()
+      expect( getValidatedValue(optionalSchema.validate(1234)), "should remove the value of failed validations" ).toBeUndefined()
       expect( optionalSchema.validate(1234).success, "should validate when failed" ).toBeTrue()
   });
 
@@ -581,7 +581,7 @@ describe('Date Validation', () => {
 
 
     expect( dateSchema.validate(dateObject).success, "should validate a date object without timestmap" ).toBeTrue()
-    expect( validatedValue(dateSchema.validate(dateObject)), "should hold a the date object" ).toEqual(dateObject)
+    expect( getValidatedValue(dateSchema.validate(dateObject)), "should hold a the date object" ).toEqual(dateObject)
     expect( dateSchema.validate(timestampObject).success, "should validate a date object with timestamp" ).toBeTrue()
     expect( dateSchema.validate(dateStr).success, "should validate a date string" ).toBeTrue()
     expect( dateSchema.validate(timestampString).success, "should validate a timestamp string" ).toBeTrue()
@@ -602,7 +602,7 @@ describe('Date Validation', () => {
     expect( dateSchemaWithConstraints.validate(beforeMinDate).success, "should NOT validate a date before the given constraint" ).toBeFalse()
     expect( dateSchemaWithConstraints.validate(afterMaxDate).success, "should NOT validate a date after the given constraint" ).toBeFalse()
     expect( dateSchemaWithConstraints.validate(obamaInauguration).success, "should validate a date within the given constraint" ).toBeTrue() 
-    expect( validatedValue(dateSchemaWithConstraints.validate(obamaInauguration)), "should hold the given value of the validated date" ).toEqual(obamaInauguration)    
+    expect( getValidatedValue(dateSchemaWithConstraints.validate(obamaInauguration)), "should hold the given value of the validated date" ).toEqual(obamaInauguration)    
    
   });
 
@@ -613,10 +613,10 @@ describe('Date Validation', () => {
     const obamaInauguration = new Date("2009-01-20")
     const dateSchemaFallbacksToConstraint = v.date().before(obamaInauguration).after(obamaInauguration).populate()
 
-    expect( isValidDate(validatedValue(dateSchemaThatFallbacks.validate(""))), "should generate a Date object" ).toBeTrue()
-    expect( (validatedValue(dateSchemaThatFallbacks.validate("")) >= oneYearAgo), "should generate a Date Object that is no later than oneYearAgo" ).toBeTrue()
-    expect( validatedValue(dateSchemaThatFallbacks.validate(obamaInauguration)), "should validate and hold the given date object" ).toEqual(obamaInauguration)
-    expect( validatedValue(dateSchemaFallbacksToConstraint.validate("")), "should generate a Date object that is before and after the given constraint" ).toEqual(obamaInauguration)
+    expect( isValidDate(getValidatedValue(dateSchemaThatFallbacks.validate(""))), "should generate a Date object" ).toBeTrue()
+    expect( (getValidatedValue(dateSchemaThatFallbacks.validate("")) >= oneYearAgo), "should generate a Date Object that is no later than oneYearAgo" ).toBeTrue()
+    expect( getValidatedValue(dateSchemaThatFallbacks.validate(obamaInauguration)), "should validate and hold the given date object" ).toEqual(obamaInauguration)
+    expect( getValidatedValue(dateSchemaFallbacksToConstraint.validate("")), "should generate a Date object that is before and after the given constraint" ).toEqual(obamaInauguration)
   
   });
 });
@@ -682,12 +682,12 @@ describe('Coercion', () => {
     const customBoolSchema = v.boolean().boolish()
     const dateSchema = v.date()
 
-    expect( validatedValue(strSchema.validate(testNum)), "string().coerce() should coerce to a string" ).toBe(String(testNum))
-    expect( validatedValue(numSchema.validate(testNumStr)), "number().coerce() should coerce to a number" ).toBe(Number(testNumStr))
-    expect( validatedValue(boolSchema.validate(testBoolStr)), "boolean().coerce() should coerce to a bool" ).toBe(Boolean(testBoolStr))
-    expect( validatedValue(customBoolSchema.validate(testCustomBool)), "boolean().boolish() should coerce \"wahr\" to a true" ).toBeTrue()
-    expect( validatedValue(dateSchema.validate(testDateStr)), "date() should coerce a date string to a Date object" ).toEqual(new Date(testDateStr))
-    expect( validatedValue(dateSchema.validate(testTimestampString)), "date() should coerce a timestamp string to a Date object" ).toEqual(new Date(testTimestampString))
-    expect( validatedValue(dateSchema.validate(testTimestampAsNumber)), "date() should coerce a timestamp number to a Date object" ).toEqual(new Date(testTimestampAsNumber))
+    expect( getValidatedValue(strSchema.validate(testNum)), "string().coerce() should coerce to a string" ).toBe(String(testNum))
+    expect( getValidatedValue(numSchema.validate(testNumStr)), "number().coerce() should coerce to a number" ).toBe(Number(testNumStr))
+    expect( getValidatedValue(boolSchema.validate(testBoolStr)), "boolean().coerce() should coerce to a bool" ).toBe(Boolean(testBoolStr))
+    expect( getValidatedValue(customBoolSchema.validate(testCustomBool)), "boolean().boolish() should coerce \"wahr\" to a true" ).toBeTrue()
+    expect( getValidatedValue(dateSchema.validate(testDateStr)), "date() should coerce a date string to a Date object" ).toEqual(new Date(testDateStr))
+    expect( getValidatedValue(dateSchema.validate(testTimestampString)), "date() should coerce a timestamp string to a Date object" ).toEqual(new Date(testTimestampString))
+    expect( getValidatedValue(dateSchema.validate(testTimestampAsNumber)), "date() should coerce a timestamp number to a Date object" ).toEqual(new Date(testTimestampAsNumber))
   });
 });
