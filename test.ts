@@ -143,6 +143,56 @@ describe('Validator', () => {
       expect( optionalSchema.validate(1234).success, "should validate when failed" ).toBeTrue()
   });
 
+  test('union schemas', () => {
+    const plainUnionSchema = v.string().or(v.number())
+    
+    const userOrCompanySchema = v.object({
+      name: v.string(),
+      age: v.number(),
+      notes: v.array(v.object({title: v.string(), content: v.string()}))
+    }).or(v.object({
+      companyName: v.string(),
+      employeeCount: v.number(),
+      address: v.object({
+        street: v.string(),
+        city: v.string(),
+        zipCode: v.string()
+      })
+    }))
+    const unionSchemaUserOrCompany = v.union([
+      v.object({
+        name: v.string(),
+        age: v.number(),
+        notes: v.array(v.object({title: v.string(), content: v.string()}))
+      }),
+      v.object({
+        companyName: v.string(),
+        employeeCount: v.number(),
+        address: v.object({
+          street: v.string(),
+          city: v.string(),
+          zipCode: v.string()
+        })
+      })
+  ])
+    const userObject = {name: "John Doe", age: 30, notes: [{ title: "Note 1", content: "Content of note 1" }]}
+    const companyObject = {companyName: "Acme Inc.", employeeCount: 100, address: { street: "123 Main St", city: "Anytown", zipCode: "12345" }}
+
+    expect( plainUnionSchema.validate("test").success, "should validate a string value" ).toBeTrue()
+    expect( plainUnionSchema.validate(1234).success, "should validate a number value" ).toBeTrue()
+    expect( plainUnionSchema.validate(true).success, "should NOT validate a boolean value" ).toBeFalse()
+    
+    expect( userOrCompanySchema.validate(userObject).success, "should validate a user object" ).toBeTrue()
+    expect( getValidatedValue(userOrCompanySchema.validate(userObject)), "should hold the user object when validated" ).toEqual(userObject)
+    expect( userOrCompanySchema.validate(companyObject).success, "should validate a company object" ).toBeTrue()
+    expect( getValidatedValue(userOrCompanySchema.validate(companyObject)), "should hold the company object when validated" ).toEqual(companyObject)
+    expect( userOrCompanySchema.validate({name: "John Doe", employeeCount: 100}).success, "should NOT validate an object that does not match either schema" ).toBeFalse()
+    expect( getErrorMessage(userOrCompanySchema.validate({companyName: "Acme Inc.", age: 30})), "should return errors from both schemas when validation fails" ).toEqual([
+      'Union branch 1 validation failed: ["name: must be a string, given was undefined","notes: must be an array, given was undefined"]',
+      'Union branch 2 validation failed: ["employeeCount: must be a number, given was undefined","address: must be an object, given was undefined of type undefined"]'
+    ])
+    expect( unionSchemaUserOrCompany, "union schema and or schemas should be equal" ).toEqual(userOrCompanySchema)
+  });
 });
 /*
 ..######..########.########..####.##....##..######..
