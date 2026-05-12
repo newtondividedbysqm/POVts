@@ -18,6 +18,9 @@ type ValidationResultLike<T> =
   /** Type safe helper to access the validatedResult value */
 const getValidatedValue = <T>(result: ValidationResultLike<T>): T =>
   result.success ? result.value : (undefined as T);
+/** type safe helper to access the validatedResult error */
+const getErrorMessage = <T>(result: ValidationResultLike<T>): string[] =>
+  result.success ? [] : result.error;
 
 describe('Validator', () => {
   test('Creates the correct Schema Instances for validation', () => {
