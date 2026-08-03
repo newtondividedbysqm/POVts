@@ -10,22 +10,29 @@ function isNullish(value: unknown): value is null | undefined {
 
 /** internal function to narrow type to be a number and NOT NaN */
 function isValidNumber(value: unknown): value is number {
-  return (typeof value === 'number' && value === value)
+  return typeof value === "number" && value === value;
 }
 
 /** internal function to check whether a Date Object is properly populated with a Date */
 function isValidDateObject(date: unknown): date is Date {
-  if (date !== null && typeof date === "object" && date instanceof Date && Object.prototype.toString.call(date) === "[object Date]") {  
-    const time = Date.prototype.getTime.call(date)
-    return ( Date.prototype.toString.call(date) !== 'Invalid Date' && time === time ) as boolean
+  if (
+    date !== null &&
+    typeof date === "object" &&
+    date instanceof Date &&
+    Object.prototype.toString.call(date) === "[object Date]"
+  ) {
+    const time = Date.prototype.getTime.call(date);
+    return (Date.prototype.toString.call(date) !== "Invalid Date" && time === time) as boolean;
   }
-  return false
+  return false;
 }
 
 function isDate(date: unknown): date is Date {
-  return (date !== null && typeof date === "object" && date instanceof Date && Object.prototype.toString.call(date) === "[object Date]") as boolean
+  return (date !== null &&
+    typeof date === "object" &&
+    date instanceof Date &&
+    Object.prototype.toString.call(date) === "[object Date]") as boolean;
 }
-
 
 // endregion
 
@@ -91,7 +98,7 @@ export class Validator {
   static date() {
     return new DateSchema();
   }
-  
+
   /**
    * Creates a LiteralSchema to validate if the value is equal to the provided literal value.
    *
@@ -182,16 +189,16 @@ abstract class Schema<T> {
   protected _default: boolean = false;
   protected _defaultValue!: T;
   protected _catch: boolean = false;
-   _isOptional: boolean = false;
+  _isOptional: boolean = false;
 
-  protected _preprocessRules: Array<(param: unknown) => unknown> = [] 
-  protected _transformRules: Array<(param: T) => T> = []
-  protected _postprocessRules: Array<(param: T) => any> = []
+  protected _preprocessRules: Array<(param: unknown) => unknown> = [];
+  protected _transformRules: Array<(param: T) => T> = [];
+  protected _postprocessRules: Array<(param: T) => any> = [];
 
   /**
-   * Sets the schema to strictly allow null values.  
-   * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
-   * 
+   * Sets the schema to strictly allow null values.
+   * *Note: strictNullChecks are required in tsconfig to show union types with Null*
+   *
    * @returns the current schema with a widened type to include null.
    */
   nullable(): Schema<T | null> {
@@ -200,9 +207,9 @@ abstract class Schema<T> {
   }
 
   /**
-   * Sets the schema to allow nullish values (null or undefined).  
-   * *Note: strictNullChecks are required in tsconfig to show union types with Null*  
-   * 
+   * Sets the schema to allow nullish values (null or undefined).
+   * *Note: strictNullChecks are required in tsconfig to show union types with Null*
+   *
    * @returns the current schema with a widened type to include null.
    */
   nullish(): Schema<T | null> {
@@ -212,14 +219,14 @@ abstract class Schema<T> {
 
   /**
    * Sets the schema to validate a default value when a nullish value was provided.
-   * As opposed to default(), which would short-circuit the validation process.  
+   * As opposed to default(), which would short-circuit the validation process.
    * prefault() will take the default value to run the validation process.
    * Note: This will take precedance over preprocess()
    */
   prefault(value: T): this {
-    this._prefault = true
-    this._defaultValue = value
-    return this
+    this._prefault = true;
+    this._defaultValue = value;
+    return this;
   }
   /**
    * Sets the schema to use a default value when a nullish value was provided.
@@ -234,7 +241,7 @@ abstract class Schema<T> {
     return this;
   }
   /**
-   * Sets the schema to use a default value when the validation failed.  
+   * Sets the schema to use a default value when the validation failed.
    * Note: you can provide null as a value as a shortcut nullish().
    * @name catch
    * @param value the fallback value
@@ -253,7 +260,7 @@ abstract class Schema<T> {
     this._defaultValue = value;
     return this as Schema<T>;
   }
-  defaultCatch = this.catch
+  defaultCatch = this.catch;
 
   /**
    * Sets the schema to be optional meaning the value will be set to undefinded if the validation failed.
@@ -275,12 +282,12 @@ abstract class Schema<T> {
   }
 
   /**
-   * sets the schema to call an anonymous function before any validation logic happens  
+   * sets the schema to call an anonymous function before any validation logic happens
    * **Note:** preprocess functions are called before nullable/nullish/default/optional checks,
-   * however if a prefault() value is provided, the preprocess pipeline will start with the provided value  
+   * however if a prefault() value is provided, the preprocess pipeline will start with the provided value
    *
    * @param fn an anonymous function that takes and returns an unknown value.
-   * @example 
+   * @example
    * function appendBar(param: unknown) {
    *   return param+"_BAR"
    * }
@@ -289,22 +296,22 @@ abstract class Schema<T> {
    * // {
    * //   "success": true,
    * //   "value": "20_BAR"
-   * // } 
+   * // }
    */
   preprocess(fn: (param: unknown) => unknown) {
     if (typeof fn !== "function") {
       throw new Error(`Schema Definition Error: preprocess() parameter must be a function`);
     }
-    this._preprocessRules.push(fn)
+    this._preprocessRules.push(fn);
     return this;
   }
-  preform = this.preprocess
+  preform = this.preprocess;
 
   /**
-   * sets the schema to call an anonymous function right after an initial type validation  
-   * 
+   * sets the schema to call an anonymous function right after an initial type validation
+   *
    * @param fn an anonymous function that takes and returns a value which must match with the type of the schema.
-   * @example 
+   * @example
    * function appendBar(param: string) {
    *   return param+"_BAR"
    * }
@@ -313,13 +320,13 @@ abstract class Schema<T> {
    * // {
    * //   "success": true,
    * //   "value": "FOO_BAR"
-   * // } 
-   * 
+   * // }
+   *
    * const errorResult = strSchema.validate(20)
    * // {
    * //   "success": true,
    * //   "value": "must be a string, given was number"
-   * // } 
+   * // }
    */
   transform(fn: (param: T) => T) {
     if (typeof fn !== "function") {
@@ -330,15 +337,15 @@ abstract class Schema<T> {
   }
 
   /**
-   * sets the schema to call an anonymous function after an successfull validation  
-   * 
+   * sets the schema to call an anonymous function after an successfull validation
+   *
    * @param fn an anonymous function that takes and returns a value which must match with the type of the schema.
-   * @example 
+   * @example
    * function appendBar(param: string) {
    *   return param+"_BAR"
    * }
    * const strSchema = v.string().endsWith('_BAR').postprocess( appendBar )
-   * 
+   *
    * const result = strSchema.validate("FOO")
    * // {
    * //   "success": false,
@@ -348,17 +355,16 @@ abstract class Schema<T> {
    * // {
    * //   "success": true,
    * //   "value": "FOO_BAR_BAR"
-   * // } 
+   * // }
    */
   postprocess<nextType = T>(fn: (param: T) => nextType) {
     if (typeof fn !== "function") {
       throw new Error(`Schema Definition Error: postprocess() parameter must be a function`);
     }
-    this._postprocessRules.push(fn)
+    this._postprocessRules.push(fn);
     return this as unknown as Schema<nextType>;
   }
-  postform = this.postprocess
-
+  postform = this.postprocess;
 
   protected _applyTransforms(value: T): T {
     let result = value;
@@ -369,34 +375,37 @@ abstract class Schema<T> {
   }
 
   /**
-   * internal function to act before the start of the validations  
+   * internal function to act before the start of the validations
    * this includes success events upon a null or undefinded values
    * aswell as preprocess rules
    */
-  protected preValidationCheck(value: unknown): CheckResult<T>{
-    if (this._prefault && (value === null || value === undefined)) { //prefault must take precedance over preprocess
-      value = this._defaultValue
+  protected preValidationCheck(value: unknown): CheckResult<T> {
+    if (this._prefault && (value === null || value === undefined)) {
+      //prefault must take precedance over preprocess
+      value = this._defaultValue;
     }
     if (this._preprocessRules.length > 0) {
-        for (const fn of this._preprocessRules) {
+      for (const fn of this._preprocessRules) {
         value = fn(value);
       }
     }
 
     if (value === null || value === undefined) {
-      if (this._default) { // default() shall act upon null or undefined values
-        return { status: "RETURN", value: {success: true, value: this._defaultValue}};
+      if (this._default) {
+        // default() shall act upon null or undefined values
+        return { status: "RETURN", value: { success: true, value: this._defaultValue } };
       }
       if (this._nullish) {
-        return { status: "RETURN", value: {success: true, value: null as T}};
+        return { status: "RETURN", value: { success: true, value: null as T } };
       }
       if (this._nullable && value === null) {
-        return { status: "RETURN", value: {success: true, value: null as T}};
+        return { status: "RETURN", value: { success: true, value: null as T } };
       }
-      if (this._catch) { // catch() shall act upon failed validation, therefore nullish and nullable takes precedence
-        return { status: "RETURN", value: {success: true, value: this._defaultValue }};
+      if (this._catch) {
+        // catch() shall act upon failed validation, therefore nullish and nullable takes precedence
+        return { status: "RETURN", value: { success: true, value: this._defaultValue } };
       }
-      if (this._isOptional) return { status: "RETURN", value: {success: true, value: undefined as T }};
+      if (this._isOptional) return { status: "RETURN", value: { success: true, value: undefined as T } };
     }
     return { status: "CONTINUE", value: value };
   }
@@ -408,13 +417,14 @@ abstract class Schema<T> {
     if (result.success) {
       if (this._postprocessRules.length > 0) {
         for (const fn of this._postprocessRules) {
-            result.value = fn(result.value);
+          result.value = fn(result.value);
         }
       }
-      return result
-    } else { //sucess is false
+      return result;
+    } else {
+      //sucess is false
       if (this._catch) {
-        return { success: true, value: isNullish(this._defaultValue) ? null as T : this._defaultValue };
+        return { success: true, value: isNullish(this._defaultValue) ? (null as T) : this._defaultValue };
       }
       if (this._isOptional) return { success: true, value: undefined as T };
       return result;
@@ -427,7 +437,6 @@ abstract class Schema<T> {
 
 // #region StringSchema
 type IBANCountryCode = keyof typeof ibanRegexThroughCountryCode;
-
 type IBANValidationOptions = {
   allowlist?: IBANCountryCode[];
   blocklist?: IBANCountryCode[];
@@ -446,8 +455,8 @@ export class StringSchema extends Schema<string> {
   private _length: number = NaN;
   private _email: boolean = false;
   private _base64: boolean = false;
-  private _startsWith?: string
-  private _endsWith?: string
+  private _startsWith?: string;
+  private _endsWith?: string;
 
   private _locale: string = "en-US";
   private _alpha: boolean = false;
@@ -456,12 +465,12 @@ export class StringSchema extends Schema<string> {
   private _numericmin: number = NaN;
   private _numericmax: number = NaN;
   private _ISO31661Alpha2: boolean = false;
-  private _ISO31661Alpha2Options: {userAssignedCodes?: string[]} = {};
+  private _ISO31661Alpha2Options: { userAssignedCodes?: string[] } = {};
   private _IBAN: boolean = false;
   private _IBANOptions: IBANValidationOptions = {};
   private _BIC: boolean = false;
   private _postal: boolean = false;
-  private _ipVersion: false | 4 | 6 | 'any' = false;
+  private _ipVersion: false | 4 | 6 | "any" = false;
 
   /**
    * Coerces the value into a String using the JS-built-in String() function
@@ -479,7 +488,7 @@ export class StringSchema extends Schema<string> {
    * @param value The minimum value to be set.
    */
   min(value: number) {
-    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: min(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: min(${value}) parameter is not a number`);
     this._min = value;
     return this;
   }
@@ -489,7 +498,7 @@ export class StringSchema extends Schema<string> {
    * @param value The maximum value to be set.
    */
   max(value: number) {
-    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: max(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: max(${value}) parameter is not a number`);
     this._max = value;
     return this;
   }
@@ -499,7 +508,7 @@ export class StringSchema extends Schema<string> {
    * @param value The exact length to be set.
    */
   length(value: number) {
-    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: length(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`StringSchema Constraint Error: length(${value}) parameter is not a number`);
 
     this._length = value;
     return this;
@@ -520,7 +529,8 @@ export class StringSchema extends Schema<string> {
    * @returns The current schema to allow method chaining.
    */
   startsWith(value: string) {
-    if (typeof value !== "string") throw new Error(`StringSchema Constraint Error: startsWith(${value}) parameter is not a string`)
+    if (typeof value !== "string")
+      throw new Error(`StringSchema Constraint Error: startsWith(${value}) parameter is not a string`);
     this._startsWith = value;
     return this;
   }
@@ -532,7 +542,7 @@ export class StringSchema extends Schema<string> {
    * @returns The current schema to allow method chaining.
    */
   endsWith(value: string) {
-    if (typeof value !== "string") throw new Error(`StringSchema Constraint Error: endsWith(${value}) parameter is not a string`)
+    if (typeof value !== "string") throw new Error(`StringSchema Constraint Error: endsWith(${value}) parameter is not a string`);
     this._endsWith = value;
     return this;
   }
@@ -568,7 +578,7 @@ export class StringSchema extends Schema<string> {
     this._numericmax = max;
     return this;
   }
-/**
+  /**
    * Sets the schema to validate email format.
    
    */
@@ -577,8 +587,8 @@ export class StringSchema extends Schema<string> {
     return this;
   }
   /**
-   * Sets the schema to validate base64 format.  
-   * **Note:** Empty strings are valid base64 and in compliance with rfc4648.  
+   * Sets the schema to validate base64 format.
+   * **Note:** Empty strings are valid base64 and in compliance with rfc4648.
    * Use base64().NonEmpty() instead where applicable
    */
   base64() {
@@ -603,11 +613,11 @@ export class StringSchema extends Schema<string> {
    * You can pass an argument to add user-assigned codes to the list of valid alpha2 country codes.
    */
   ISO31661Alpha2(): this;
-  /** Adds a single user-assigned code to the list of valid alpha2 country codes 
+  /** Adds a single user-assigned code to the list of valid alpha2 country codes
    * @param userAssignedCode Any 2-letter code from the user-assigned code range (AA, QM to QZ, XA to XZ, and ZZ) according to ISO 3166-1 alpha-2 standard.
    * @example
    * v.string().ISO31661Alpha2('XK') // accepts 'XK' as a valid alpha-2 code in addition to the officially assigned codes
-  */
+   */
   ISO31661Alpha2(userAssignedCode: string): this;
   /** Adds multiple user-assigned codes to the list of valid alpha2 country codes
    * @param userAssignedCodes An array of 2-letter codes from the user-assigned code range (AA, QM to QZ, XA to XZ, and ZZ) according to ISO 3166-1 alpha-2 standard.
@@ -618,7 +628,7 @@ export class StringSchema extends Schema<string> {
   ISO31661Alpha2(userAssignedCodes?: string | string[]): this {
     this._ISO31661Alpha2 = true;
 
-    if (typeof userAssignedCodes === 'string') {
+    if (typeof userAssignedCodes === "string") {
       this._ISO31661Alpha2Options = { userAssignedCodes: [userAssignedCodes] };
     } else if (Array.isArray(userAssignedCodes)) {
       this._ISO31661Alpha2Options = { userAssignedCodes: userAssignedCodes };
@@ -634,7 +644,7 @@ export class StringSchema extends Schema<string> {
    * or use an allowlist/blocklist to further restrict the accepted countries.
    */
   IBAN(): this;
-  /** Sets the schema to validate an IBAN from a specific Country 
+  /** Sets the schema to validate an IBAN from a specific Country
    * @param countryCode The ISO 3166-1 alpha-2 country code to be used for validation.
    * @example
    * v.string().IBAN('DE') // only accepts German IBANs
@@ -650,9 +660,13 @@ export class StringSchema extends Schema<string> {
   IBAN(countryCodeOrOptions?: IBANCountryCode | IBANValidationOptions) {
     this._IBAN = true;
 
-    if (typeof countryCodeOrOptions === 'string') {
+    if (typeof countryCodeOrOptions === "string") {
       this._IBANOptions = { allowlist: [countryCodeOrOptions as keyof typeof ibanRegexThroughCountryCode] };
-    } else if (!isNullish(countryCodeOrOptions) && typeof countryCodeOrOptions === 'object' && (countryCodeOrOptions?.allowlist || countryCodeOrOptions?.blocklist)) {
+    } else if (
+      !isNullish(countryCodeOrOptions) &&
+      typeof countryCodeOrOptions === "object" &&
+      (countryCodeOrOptions?.allowlist || countryCodeOrOptions?.blocklist)
+    ) {
       this._IBANOptions = countryCodeOrOptions;
     }
 
@@ -665,7 +679,7 @@ export class StringSchema extends Schema<string> {
   /**
    * Sets the schema to validate a BIC/SWIFT code.
    * Validates the format (ISO 9362) and that the embedded country code
-   * is a recognised ISO 3166-1 alpha-2 code.  
+   * is a recognised ISO 3166-1 alpha-2 code.
    * Whitespace is stripped and the value is uppercased before validation.
    */
   BIC() {
@@ -675,80 +689,90 @@ export class StringSchema extends Schema<string> {
     return this;
   }
 
-  ip(version: 4 | 6 | 'any' = 'any') {
+  ip(version: 4 | 6 | "any" = "any") {
     this._ipVersion = version;
     return this;
   }
   //MARK: string transforms
 
   /**
-   * Sets the schema to trim whitespace from the start and end of the string.  
+   * Sets the schema to trim whitespace from the start and end of the string.
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   trim() {
-    this.transform( (value):string => {
+    this.transform((value): string => {
       if (typeof value === "string") {
         return value.trim();
-      } else { return value; }
+      } else {
+        return value;
+      }
     });
     return this;
   }
   /**
-   * Sets the schema to lowercase the string.  
+   * Sets the schema to lowercase the string.
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   toLowerCase() {
-    this.transform( (value):string => {
+    this.transform((value): string => {
       if (typeof value === "string") {
         return value.toLowerCase();
-      } else { return value; }
+      } else {
+        return value;
+      }
     });
     return this;
   }
 
   /**
-   * Sets the schema to UPPERCASE the string.  
+   * Sets the schema to UPPERCASE the string.
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   toUpperCase() {
-    this.transform( (value):string => {
+    this.transform((value): string => {
       if (typeof value === "string") {
-        return value.toUpperCase()
-      } else { return value; }
+        return value.toUpperCase();
+      } else {
+        return value;
+      }
     });
     return this;
   }
 
   /**
-   * Sets the schema to Capitalize the string.  
+   * Sets the schema to Capitalize the string.
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   capitalized() {
-    this._transformRules.push( (value):string => {
+    this._transformRules.push((value): string => {
       if (typeof value === "string") {
         return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
-      } else { return value; }
+      } else {
+        return value;
+      }
     });
     return this;
   }
 
   /**
-   * Sets the schema to remove all whitespaces within the string.  
+   * Sets the schema to remove all whitespaces within the string.
    * This will be applied after a basic type validation/coercion but before any other validation.
    */
   removeWhitespaces() {
-    this.transform( (value):string => {
+    this.transform((value): string => {
       if (typeof value === "string") {
-        return value.replace(/\s+/g, '');
-      } else { return value; }
+        return value.replace(/\s+/g, "");
+      } else {
+        return value;
+      }
     });
     return this;
   }
   trimAll = this.removeWhitespaces;
 
   /**
-   * Sets the schema to pad the string to a certain length with a given character.  
-   * Unlike the js built-in padStart/padEnd this will NOT pad to an empty string 
+   * Sets the schema to pad the string to a certain length with a given character.
+   * Unlike the js built-in padStart/padEnd this will NOT pad to an empty string
    * This will be applied after a basic type validation/coercion but before any other validation.
    * @param length the target length of the string after padding.
    * @param char the character to use for padding. Default is " ".
@@ -762,13 +786,15 @@ export class StringSchema extends Schema<string> {
         } else {
           return value.padEnd(length, char);
         }
-      } else { return value; }
+      } else {
+        return value;
+      }
     });
     return this;
   }
 
   /**
-   * Sets the schema to slice the string from start index to end index.  
+   * Sets the schema to slice the string from start index to end index.
    * This will be applied after a basic type validation/coercion but before any other validation.
    * @param start the index to start slicing from. Default is 0.
    * @param end the index to end slicing. Default is the length of the string to be validated.
@@ -777,23 +803,27 @@ export class StringSchema extends Schema<string> {
     this._transformRules.push((value): string => {
       if (typeof value === "string") {
         return value.slice(start, end);
-      } else { return value; }
+      } else {
+        return value;
+      }
     });
     return this;
   }
 
   /**
-   * Sets the schema to limit the string to a certain length by cutting off the rest.  
-   * This will be applied after a basic type validation/coercion but before any other validation. 
+   * Sets the schema to limit the string to a certain length by cutting off the rest.
+   * This will be applied after a basic type validation/coercion but before any other validation.
    * @param length the target length to cut the string to. Default is the defined length constraint.
    */
   cut(length?: number) {
     this._transformRules.push((value): string => {
-      length ??= this._length
+      length ??= this._length;
 
       if (typeof value === "string") {
-        return value.slice(0, length)
-      } else { return value }
+        return value.slice(0, length);
+      } else {
+        return value;
+      }
     });
     return this;
   }
@@ -814,9 +844,11 @@ export class StringSchema extends Schema<string> {
   validate(value: unknown): ValidationResult<string> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
+    else {
+      value = preValidationResult.value;
+    }
 
-    const givenValue = value
+    const givenValue = value;
     if (this._coerce) {
       value = String(value);
       if (value === "[object Object]") {
@@ -836,7 +868,7 @@ export class StringSchema extends Schema<string> {
 
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      value = this._applyTransforms(value)
+      value = this._applyTransforms(value);
       if (typeof value !== "string") {
         return this.postValidationCheck({
           success: false,
@@ -1005,8 +1037,8 @@ export class NumberSchema extends Schema<number> {
   private _multipleOf: number = NaN;
 
   /**
-   * Coerces the value into a Number using the JS-built-in Number() function  
-   * ***Note:** this will treat null or boolean values as a numerical value*  
+   * Coerces the value into a Number using the JS-built-in Number() function
+   * ***Note:** this will treat null or boolean values as a numerical value*
    */
   coerce() {
     this._coerce = true;
@@ -1022,18 +1054,18 @@ export class NumberSchema extends Schema<number> {
   }
 
   /**
-   * Sets the schema to validate positive (greater than 0) values.  
-   * ***Careful:** Mathematicaly 0 is neither positive nor negative.  
-   * Use `min(0)` for a non-negative validation.*  
+   * Sets the schema to validate positive (greater than 0) values.
+   * ***Careful:** Mathematicaly 0 is neither positive nor negative.
+   * Use `min(0)` for a non-negative validation.*
    */
   positive() {
     this._positive = true;
     return this;
   }
   /**
-   * Sets the schema to validate negative (less than 0) values.  
-   * ***Careful:** Mathematicaly 0 is neither positive nor negative.  
-   * Use `max(0)` for a non-positive validation.*  
+   * Sets the schema to validate negative (less than 0) values.
+   * ***Careful:** Mathematicaly 0 is neither positive nor negative.
+   * Use `max(0)` for a non-positive validation.*
    */
   negative() {
     this._negative = true;
@@ -1046,7 +1078,7 @@ export class NumberSchema extends Schema<number> {
    * @param value The minimum value to be set.
    */
   min(value: number) {
-    if (isNaN(value)) throw new Error(`NumberSchema Constraint Error: min(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`NumberSchema Constraint Error: min(${value}) parameter is not a number`);
     this._min = value;
     return this;
   }
@@ -1057,7 +1089,7 @@ export class NumberSchema extends Schema<number> {
    * @param value The maximum value to be set.
    */
   max(value: number) {
-    if (isNaN(value)) throw new Error(`NumberSchema Constraint Error: max(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`NumberSchema Constraint Error: max(${value}) parameter is not a number`);
     this._max = value;
     return this;
   }
@@ -1065,10 +1097,10 @@ export class NumberSchema extends Schema<number> {
   /**
    * Sets the schema to validate whether a number is a multiple of the given value
    * @param Of the Of-value which the validated number must be a multiple of
-   * @returns 
+   * @returns
    */
   multipleOf(Of: number) {
-    if (isNaN(Of)) throw new Error(`NumberSchema Constraint Error: multipleOf(${Of}) parameter is not a number`)
+    if (isNaN(Of)) throw new Error(`NumberSchema Constraint Error: multipleOf(${Of}) parameter is not a number`);
 
     this._multipleOf = Of;
     return this;
@@ -1087,15 +1119,12 @@ export class NumberSchema extends Schema<number> {
     this.transform((value) => {
       // if min/max are not provided within the clamp value, we take them from the defined constraints of the schema
       // if the defined constraints are also unset, we check if the positive/negative constraint is set and set the min/max to 1/-1 respectively to prevent NaN results from the clamping,
-      min ??= (Number.isNaN(this._min) && this._positive) ? 1 : this._min
-      max ??= (Number.isNaN(this._max) && this._negative) ? -1 : this._max
-      
-      if ( Number.isNaN(max) && Number.isNaN(min) ) {
+      min ??= Number.isNaN(this._min) && this._positive ? 1 : this._min;
+      max ??= Number.isNaN(this._max) && this._negative ? -1 : this._max;
+
+      if (Number.isNaN(max) && Number.isNaN(min)) {
         // both min and max are unset
-        return value
       }
-      else if ( Number.isNaN(max) && !Number.isNaN(min) ) {
-        return Math.max(min, value) 
       }
       else if ( !Number.isNaN(max) && Number.isNaN(min) ) {
         return Math.min(max, value)
@@ -1139,9 +1168,11 @@ export class NumberSchema extends Schema<number> {
   validate(value: unknown): ValidationResult<number> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
+    else {
+      value = preValidationResult.value;
+    }
 
-    const givenValue = value
+    const givenValue = value;
     if (this._coerce) {
       value = Number(value);
     }
@@ -1153,7 +1184,7 @@ export class NumberSchema extends Schema<number> {
     }
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      value = this._applyTransforms(value)
+      value = this._applyTransforms(value);
       if (!isValidNumber(value)) {
         return this.postValidationCheck({
           success: false,
@@ -1209,7 +1240,7 @@ export class NumberSchema extends Schema<number> {
 /**
  * A schema for validating boolean values with various constraints.
  *
- * 
+ *
  * This class provides methods to define validation rules for booleans, such as
  * strict, truthy, and falsy values. It also includes a `validate` method to check
  * if a given value satisfies the defined rules.
@@ -1222,9 +1253,10 @@ export class BooleanSchema extends Schema<boolean> {
   private _falsy: boolean = false;
   private _useCustomCoercion: boolean = false;
 
-  private _customCoercion = { 
-      truthy: new Set(["true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr"]),
-      falsy: new Set(["false","0", "no", "off", "n", "disabled", "nein", "falsch"])};
+  private _customCoercion = {
+    truthy: new Set(["true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr"]),
+    falsy: new Set(["false", "0", "no", "off", "n", "disabled", "nein", "falsch"]),
+  };
   /**
    * Sets the schema to coerce values to boolean using JS truthy/falsy rules.
    * use `boolish()` to use our custom coercion logic.
@@ -1235,13 +1267,13 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   /**
-   * Sets the schema to coerce using our custom coercion logic.  
-   * This will result in "true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr" to be coerced to true,  
-   * while "false","0", "no", "off", "n", "disabled", "nein", "falsch" will be coerced to false.  
-   *   
+   * Sets the schema to coerce using our custom coercion logic.
+   * This will result in "true", "1", "yes", "on", "y", "enabled", "ja", "j", "wahr" to be coerced to true,
+   * while "false","0", "no", "off", "n", "disabled", "nein", "falsch" will be coerced to false.
+   *
    * To customize the turthy and falsy values, use the `customCoercion` parameter.
    * The custom coercion is case-insensitive; all values are trimmed and lowercased.
-   * 
+   *
    * @param customCoercion an object with two arrays of define custom truthy and falsy values
    * @example
    * const schema = v.boolean().boolish({
@@ -1249,14 +1281,14 @@ export class BooleanSchema extends Schema<boolean> {
    *   falsy: ["false", "0", "no", "off", "n", "disabled"],
    * });
    */
-  boolish(customCoercion?: {truthy: string[], falsy: string[]}) {
+  boolish(customCoercion?: { truthy: string[]; falsy: string[] }) {
     this._coerce = true;
     this._useCustomCoercion = true;
     if (customCoercion) {
       this._customCoercion = {
         truthy: new Set(customCoercion.truthy.map((v) => String(v).trim().toLowerCase())),
-        falsy: new Set(customCoercion.falsy.map((v) => String(v).trim().toLowerCase()))
-      }
+        falsy: new Set(customCoercion.falsy.map((v) => String(v).trim().toLowerCase())),
+      };
     }
 
     return this;
@@ -1305,16 +1337,16 @@ export class BooleanSchema extends Schema<boolean> {
   }
 
   private _coerceFromBoolish(value: unknown): boolean | undefined {
-    const normalizedValue = (value !== null && value !== undefined) ? String(value).trim().toLowerCase() : "";
-    
+    const normalizedValue = value !== null && value !== undefined ? String(value).trim().toLowerCase() : "";
+
     if (this._customCoercion.truthy?.has(normalizedValue)) {
       return true;
     }
     if (this._customCoercion.falsy?.has(normalizedValue)) {
       return false;
     }
-    
-    return undefined
+
+    return undefined;
   }
 
   /**
@@ -1331,9 +1363,11 @@ export class BooleanSchema extends Schema<boolean> {
   validate(value: unknown): ValidationResult<boolean> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
+    else {
+      value = preValidationResult.value;
+    }
 
-    const givenValue = value
+    const givenValue = value;
     let coercedValue: boolean | undefined;
     if (this._coerce) {
       if (this._useCustomCoercion) {
@@ -1350,7 +1384,7 @@ export class BooleanSchema extends Schema<boolean> {
 
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      value = this._applyTransforms(value)
+      value = this._applyTransforms(value);
       if (typeof value !== "boolean") {
         return this.postValidationCheck({
           success: false,
@@ -1392,7 +1426,6 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
   private _generateAfter?: Date;
   private _formatAsString?: string;
 
-
   /**
    * The schema will return the raw value as it was provided, if it passes validation.
    * This way you can validate a date string or Date in ms without converting it to a Date instance.
@@ -1404,7 +1437,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
   }
 
   /**
-   * Sets the schema to fallback on a randomly generated date.  
+   * Sets the schema to fallback on a randomly generated date.
    * *NOTE:* If the validation fails, this will generate a random date within the given constraints
    * If BOTH  `before` or `after` are unset, a random date within the last year from today will be created.
    * If EITHER `before` or `after` is unset, a random date within one year before/after that given date will be created.
@@ -1417,12 +1450,10 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
     if (this._before && !this._after) {
       this._generateBefore = new Date(this._before.getTime());
       this._generateAfter = new Date(this._before.getTime() - oneYearInMilliseconds);
-
     }
     if (!this._before && this._after) {
       this._generateBefore = new Date(this._after.getTime() + oneYearInMilliseconds);
       this._generateAfter = new Date(this._after.getTime());
-
     }
     //if none of the two constraints is set, we create a generationConstraint that is within the last year
     if (!this._before && !this._after) {
@@ -1436,19 +1467,18 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
     return this;
   }
   enforce = this.populate;
-  
 
   /**
    * Sets the schema to validate dates before a given date.
    *
    * @param date - The date to be set as the upper limit.
    */
-  before(date: Date | DateString ) {
+  before(date: Date | DateString) {
     this._before = new Date(date);
-    this._generateBefore = this._before
+    this._generateBefore = this._before;
     return this;
   }
-  max = this.before
+  max = this.before;
   /**
    * Sets the schema to validate dates after a given date.
    *
@@ -1456,38 +1486,38 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
    */
   after(date: Date | DateString) {
     this._after = new Date(date);
-    this._generateAfter = this._after
+    this._generateAfter = this._after;
     return this;
   }
-  min = this.after
+  min = this.after;
 
   /**
    * A Helper which sets the schema to validate a date (of birth) to be within a certain age range
    * @params ageConstraints an object with min and/or max age constraints in years.
-   * 
+   *
    *
    */
-  age(ageConstraints: {min?: number, max?: number}): this {
+  age(ageConstraints: { min?: number; max?: number }): this {
     const { min, max } = ageConstraints || {};
 
     if (min !== undefined) {
       this._before = new Date();
       this._before.setFullYear(this._before.getFullYear() - min);
-      this._generateBefore = this._before
+      this._generateBefore = this._before;
     }
     if (max !== undefined) {
       this._after = new Date();
       this._after.setFullYear(this._after.getFullYear() - max);
-      this._generateAfter = this._after
+      this._generateAfter = this._after;
     }
-    
+
     return this;
   }
 
   /**
    * Sets the schema to format the date as a string.
    * the string format defaults to the international date pattern of "YYYY-MM-DD"
-   * 
+   *
    * You can use the following tokens in the format string:
    * - YYYY: 4-digit year
    * - YY: 2-digit year
@@ -1501,24 +1531,23 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
    * - m: 1 or 2-digit minute (0-59)
    * - ss: 2-digit second (00-59)
    * - s: 1 or 2-digit second (0-59)
-   * - sss: 3-digit millisecond (000-999)  
+   * - sss: 3-digit millisecond (000-999)
    * You can also escape tokens by prefixing them with a backslash (e.g. \M or \M\M).
    * Keep in mind that js requires backslashes to be escaped themselves,
    * therefore you need to use double backslashes.
    *
    * @param format A string defining the desired date format. Defaults to 'YYYY-MM-DD'.
    */
-  toStr(format: string = 'YYYY-MM-DD'): DateSchema<string> {
-    this._formatAsString = format
-    return this as unknown as DateSchema<string>
+  toStr(format: string = "YYYY-MM-DD"): DateSchema<string> {
+    this._formatAsString = format;
+    return this as unknown as DateSchema<string>;
   }
 
   // MARK: date helpers
   private _formatDate(dateInput: Date | string | number, format: string): string {
     const date = isDate(dateInput) ? dateInput : new Date(dateInput);
 
-    const pad = (n: number, width = 2) => n.toString().padStart(width, '0');
-
+    const pad = (n: number, width = 2) => n.toString().padStart(width, "0");
 
     const formatMap: { [token: string]: string } = {
       YYYY: date.getFullYear().toString(),
@@ -1537,13 +1566,13 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
     };
 
     // Escape handling: parse the format string character-by-character
-    let result = '';
+    let result = "";
     let i = 0;
 
     while (i < format.length) {
       const char = format[i];
 
-      if (char === '\\') {
+      if (char === "\\") {
         i++;
         if (i < format.length) result += format[i];
         i++;
@@ -1553,7 +1582,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
       // Match longest possible token at this position
       const match = Object.keys(formatMap)
         .sort((a, b) => b.length - a.length)
-        .find(token => format.startsWith(token, i));
+        .find((token) => format.startsWith(token, i));
 
       if (match) {
         result += formatMap[match];
@@ -1570,14 +1599,14 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
   protected postValidationCheck(result: ValidationResult<T>): ValidationResult<T> {
     //overwrite failed validation with a random date
     if (this._shouldGenerateRandomDate && result.success === false) {
-      result = { success: true, value: this._generateRandomDate() as T }
+      result = { success: true, value: this._generateRandomDate() as T };
     }
     if (this._formatAsString && result.success) {
-      result = { success: true, value: this._formatDate(result.value, this._formatAsString) as T }
+      result = { success: true, value: this._formatDate(result.value, this._formatAsString) as T };
     }
     //continues to call the base implementation
     const baseResult = super.postValidationCheck(result);
-    return baseResult
+    return baseResult;
   }
 
   /** internal function to generate a random date based on the schema constraints */
@@ -1588,7 +1617,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
     if (this._formatAsString) {
       return this._formatDate(randomDate, this._formatAsString) as T;
     }
-    return randomDate as T
+    return randomDate as T;
   }
 
   // MARK: date validation
@@ -1604,9 +1633,12 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
    * // value is created with the Date constructor and is typed as Date
    */
   validate(value: unknown): ValidationResult<T> {
-    const preValidationResult = this.preValidationCheck(value)
-    if (preValidationResult.status === "RETURN") {return preValidationResult.value}
-    else {value = preValidationResult.value}
+    const preValidationResult = this.preValidationCheck(value);
+    if (preValidationResult.status === "RETURN") {
+      return preValidationResult.value;
+    } else {
+      value = preValidationResult.value;
+    }
 
     //the js Date constructor will return an 1970-01-01 if the value is null, so we filter that out
     if (value === null || !(typeof value === "string" || typeof value === "number" || isDate(value)) ) {
@@ -1616,11 +1648,11 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
       });
     }
     let date = new Date(value);
-    const givenValue = value
+    const givenValue = value;
     if (this._coerce) {
-        value = date;
+      value = date;
     }
-    
+
     if (!isValidDateObject(date)) {
       return this.postValidationCheck({
         success: false,
@@ -1630,12 +1662,12 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
 
     ///transform the value before continuing with the validation
     if (this._transformRules.length > 0) {
-      const transformedValue: T = this._applyTransforms(value as T)
+      const transformedValue: T = this._applyTransforms(value as T);
       //update the date object with the transformed value
       if (isDate(transformedValue)) {
         date = transformedValue;
       } else {
-        date = new Date(transformedValue)
+        date = new Date(transformedValue);
       }
 
       if (!isValidDateObject(date)) {
@@ -1648,7 +1680,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
       if (this._coerce) {
         value = date;
       } else {
-        value = transformedValue
+        value = transformedValue;
       }
     }
 
@@ -1658,7 +1690,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
         error: [`must be between ${this._after} and ${this._before}, given was ${givenValue}`],
       });
     }
-  
+
     if (this._before && date > this._before) {
       return this.postValidationCheck({
         success: false,
@@ -1686,7 +1718,7 @@ export class DateSchema<T extends Date | string | number = Date> extends Schema<
  */
 export class LiteralSchema<T> extends Schema<T> {
   readonly literalValue: T;
-  private _coerce = false
+  private _coerce = false;
 
   constructor(value: T) {
     super();
@@ -1698,8 +1730,8 @@ export class LiteralSchema<T> extends Schema<T> {
    * If the loose comparison succeeds, the schema will return the defined literalValue
    */
   coerce() {
-    this._coerce = true
-    return this
+    this._coerce = true;
+    return this;
   }
 
   /**
@@ -1716,20 +1748,23 @@ export class LiteralSchema<T> extends Schema<T> {
   validate(value: unknown): ValidationResult<T> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
-
+    else {
+      value = preValidationResult.value;
+    }
 
     if ((this._coerce && value == this.literalValue) || value === this.literalValue) {
       ///transform the value before continuing with the validation
       if (this._transformRules.length > 0) {
-        value = this._applyTransforms(this.literalValue)
+        value = this._applyTransforms(this.literalValue);
         if (value === this.literalValue) {
           return this.postValidationCheck({
             success: false,
             error: [`Literal Validation failed within the transform-pipeline, literal is now ${value} of type ${typeof value}.`],
           });
         }
-      } else { value = this.literalValue }
+      } else {
+        value = this.literalValue;
+      }
 
       return this.postValidationCheck({ success: true, value: value as T });
     } else {
@@ -1781,7 +1816,9 @@ export class EnumSchema<T extends readonly (string | number)[]> extends Schema<T
   validate(value: unknown): ValidationResult<T[number]> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else { value = preValidationResult.value; }
+    else {
+      value = preValidationResult.value;
+    }
 
     if (this._coerceTo) {
       if (this._coerceTo === "string") {
@@ -1820,12 +1857,14 @@ export class EnumSchema<T extends readonly (string | number)[]> extends Schema<T
   }
 
   private _enumValuesAsText() {
-    return Array.from(this._enumValues).map(value => {
-      if (typeof value === "string") {
-        return `'${value}'`;
-      }
-      return value;
-    }).join(", ");
+    return Array.from(this._enumValues)
+      .map((value) => {
+        if (typeof value === "string") {
+          return `'${value}'`;
+        }
+        return value;
+      })
+      .join(", ");
   }
 }
 // #endregion
@@ -1896,8 +1935,9 @@ export class ObjectSchema<T extends Record<string, Schema<any>>> extends Schema<
   validate(value: unknown): ValidationResult<InferShape<T>> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
-
+    else {
+      value = preValidationResult.value;
+    }
 
     if (typeof value !== "object" || value === null || Array.isArray(value)) {
       return this.postValidationCheck({
@@ -1913,7 +1953,7 @@ export class ObjectSchema<T extends Record<string, Schema<any>>> extends Schema<
     }
 
     const errors: string[] = [];
-    const results: any = {};
+    const results = {};
 
     for (const key in this.shape) {
       const propertySchema = this.shape[key];
@@ -1974,7 +2014,7 @@ export class ArraySchema<T> extends Schema<T[]> {
    * @param value The minimum length to be set.
    */
   min(value: number) {
-    if (isNaN(value)) throw new Error(`ArraySchema Constraint Error: min(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`ArraySchema Constraint Error: min(${value}) parameter is not a number`);
 
     this._min = value;
     return this;
@@ -1996,7 +2036,7 @@ export class ArraySchema<T> extends Schema<T[]> {
    * @param value The maximum length to be set.
    */
   max(value: number) {
-    if (isNaN(value)) throw new Error(`ArraySchema Constraint Error: max(${value}) parameter is not a number`)
+    if (isNaN(value)) throw new Error(`ArraySchema Constraint Error: max(${value}) parameter is not a number`);
 
     this._max = value;
     return this;
@@ -2016,8 +2056,9 @@ export class ArraySchema<T> extends Schema<T[]> {
   validate(value: unknown): ValidationResult<T[]> {
     const preValidationResult = this.preValidationCheck(value);
     if (preValidationResult.status === "RETURN") return preValidationResult.value;
-    else {value = preValidationResult.value}
-
+    else {
+      value = preValidationResult.value;
+    }
 
     if (!Array.isArray(value)) {
       return this.postValidationCheck({
@@ -2063,7 +2104,6 @@ export class ArraySchema<T> extends Schema<T[]> {
     }
   }
 }
-
 
 // #endregion
 
@@ -2191,9 +2231,9 @@ const postal = { /* eslint-disable no-useless-escape */
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/alpha.js
 export const alpha = { /* eslint-disable no-misleading-character-class */
   "en-US": /^[A-Z]+$/i,
-  "az-AZ": /^[A-VXYZÇƏĞİıÖŞÜ]+$/i,
-  "bg-BG": /^[А-Я]+$/i,
-  "cs-CZ": /^[A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
+  "az-AZ": /^[A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
+  "bg-BG": /^[Ð-Ð¯]+$/i,
+  "cs-CZ": /^[A-ZÃÄŒÄŽÃ‰ÄšÃÅ‡Ã“Å˜Å Å¤ÃšÅ®ÃÅ½]+$/i,
   "da-DK": /^[A-ZÆØÅ]+$/i,
   "de-DE": /^[A-ZÄÖÜß]+$/i,
   "el-GR": /^[Α-ώ]+$/i,
@@ -2234,9 +2274,9 @@ export const alpha = { /* eslint-disable no-misleading-character-class */
 // MARK: alphanumeric
 export const alphanumeric = { /* eslint-disable no-misleading-character-class */
   "en-US": /^[0-9A-Z]+$/i,
-  "az-AZ": /^[0-9A-VXYZÇƏĞİıÖŞÜ]+$/i,
-  "bg-BG": /^[0-9А-Я]+$/i,
-  "cs-CZ": /^[0-9A-ZÁČĎÉĚÍŇÓŘŠŤÚŮÝŽ]+$/i,
+  "az-AZ": /^[0-9A-VXYZÃ‡ÆÄžÄ°Ä±Ã–ÅžÃœ]+$/i,
+  "bg-BG": /^[0-9Ð-Ð¯]+$/i,
+  "cs-CZ": /^[0-9A-ZÃÄŒÄŽÃ‰ÄšÃÅ‡Ã“Å˜Å Å¤ÃšÅ®ÃÅ½]+$/i,
   "da-DK": /^[0-9A-ZÆØÅ]+$/i,
   "de-DE": /^[0-9A-ZÄÖÜß]+$/i,
   "el-GR": /^[0-9Α-ω]+$/i,
@@ -2314,15 +2354,13 @@ const validISO31661Alpha2CountriesCodes = new Set([
 const alpha2CountryCode = /^[a-zA-Z]{2}$/;
 
 function isISO31661Alpha2(str: string, options: { userAssignedCodes?: string[] } = {}) {
-
   const { userAssignedCodes } = options;
-  const validUserAssignedCodes = (userAssignedCodes || [])
-    .reduce((accumulator: string[], userAssignedCode) => {
-      if (alpha2CountryCode.test(userAssignedCode)) {
-        accumulator.push(userAssignedCode.toUpperCase());
-      }
-      return accumulator;
-    }, []);
+  const validUserAssignedCodes = (userAssignedCodes || []).reduce((accumulator: string[], userAssignedCode) => {
+    if (alpha2CountryCode.test(userAssignedCode)) {
+      accumulator.push(userAssignedCode.toUpperCase());
+    }
+    return accumulator;
+  }, []);
 
   if (validUserAssignedCodes.includes(str.toUpperCase())) {
     return true;
@@ -2417,8 +2455,9 @@ const ibanRegexThroughCountryCode = {
 };
 
 function hasOnlyValidIBANCountryCodes(countryCodeArray: readonly string[]) {
-  const countryCodeArrayFilteredWithObjectIbanCode = countryCodeArray
-    .filter(countryCode => !(countryCode in ibanRegexThroughCountryCode));
+  const countryCodeArrayFilteredWithObjectIbanCode = countryCodeArray.filter(
+    (countryCode) => !(countryCode in ibanRegexThroughCountryCode),
+  );
 
   if (countryCodeArrayFilteredWithObjectIbanCode.length > 0) {
     return false;
@@ -2426,7 +2465,6 @@ function hasOnlyValidIBANCountryCodes(countryCodeArray: readonly string[]) {
 
   return true;
 }
-
 
 /**
  * Check whether string has correct universal IBAN format
@@ -2442,7 +2480,7 @@ function hasOnlyValidIBANCountryCodes(countryCodeArray: readonly string[]) {
  */
 function hasValidIBANFormat(str: string, options: IBANValidationOptions = {}) {
   // Strip white spaces and hyphens
-  const strippedStr = str.replace(/[\s\-]+/gi, '').toUpperCase();
+  const strippedStr = str.replace(/[\s\-]+/gi, "").toUpperCase();
   const isoCountryCode = strippedStr.slice(0, 2).toUpperCase() as IBANCountryCode;
 
   const isoCountryCodeInIbanRegexCodeObject = isoCountryCode in ibanRegexThroughCountryCode;
@@ -2462,14 +2500,12 @@ function hasValidIBANFormat(str: string, options: IBANValidationOptions = {}) {
       return false;
     }
   }
-  
 
-  return (isoCountryCodeInIbanRegexCodeObject) &&
-    ibanRegexThroughCountryCode[isoCountryCode].test(strippedStr);
+  return isoCountryCodeInIbanRegexCodeObject && ibanRegexThroughCountryCode[isoCountryCode].test(strippedStr);
 }
 
 function hasValidIBANChecksum(str: string) {
-  const strippedStr = str.replace(/[^A-Z0-9]+/gi, '').toUpperCase(); // Keep only digits and A-Z latin alphabetic
+  const strippedStr = str.replace(/[^A-Z0-9]+/gi, "").toUpperCase(); // Keep only digits and A-Z latin alphabetic
   const rearranged = strippedStr.slice(4) + strippedStr.slice(0, 4);
   const alphaCapsReplacedWithDigits = rearranged.replace(/[A-Z]/g, (char) => String(char.charCodeAt(0) - 55));
 
@@ -2489,29 +2525,31 @@ const isBICReg = /^[A-Za-z]{6}[A-Za-z0-9]{2}([A-Za-z0-9]{3})?$/;
 function isBIC(str: string): boolean {
   const countryCode = str.slice(4, 6).toUpperCase();
   // XK (Kosovo) is not an official ISO 3166-1 alpha-2 code but is recognised by SWIFT for BIC usage
-  if (!validISO31661Alpha2CountriesCodes.has(countryCode) && countryCode !== 'XK') {
+  if (!validISO31661Alpha2CountriesCodes.has(countryCode) && countryCode !== "XK") {
     return false;
   }
 
-  return isBICReg.test(str)
+  return isBICReg.test(str);
 }
 
 // MARK: IP-Addresses
 // from https://github.com/validatorjs/validator.js/blob/master/src/lib/isIP.js
-const IPv4SegmentFormat = '(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])';
+const IPv4SegmentFormat = "(?:[0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])";
 const IPv4AddressFormat = `(${IPv4SegmentFormat}[.]){3}${IPv4SegmentFormat}`;
 const IPv4AddressRegExp = new RegExp(`^${IPv4AddressFormat}$`);
 
-const IPv6SegmentFormat = '(?:[0-9a-fA-F]{1,4})';
-const IPv6AddressRegExp = new RegExp('^(' +
-  `(?:${IPv6SegmentFormat}:){7}(?:${IPv6SegmentFormat}|:)|` +
-  `(?:${IPv6SegmentFormat}:){6}(?:${IPv4AddressFormat}|:${IPv6SegmentFormat}|:)|` +
-  `(?:${IPv6SegmentFormat}:){5}(?::${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,2}|:)|` +
-  `(?:${IPv6SegmentFormat}:){4}(?:(:${IPv6SegmentFormat}){0,1}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,3}|:)|` +
-  `(?:${IPv6SegmentFormat}:){3}(?:(:${IPv6SegmentFormat}){0,2}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,4}|:)|` +
-  `(?:${IPv6SegmentFormat}:){2}(?:(:${IPv6SegmentFormat}){0,3}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,5}|:)|` +
-  `(?:${IPv6SegmentFormat}:){1}(?:(:${IPv6SegmentFormat}){0,4}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,6}|:)|` +
-  `(?::((?::${IPv6SegmentFormat}){0,5}:${IPv4AddressFormat}|(?::${IPv6SegmentFormat}){1,7}|:))` +
-  ')(%[0-9a-zA-Z.]{1,})?$');
+const IPv6SegmentFormat = "(?:[0-9a-fA-F]{1,4})";
+const IPv6AddressRegExp = new RegExp(
+  "^(" +
+    `(?:${IPv6SegmentFormat}:){7}(?:${IPv6SegmentFormat}|:)|` +
+    `(?:${IPv6SegmentFormat}:){6}(?:${IPv4AddressFormat}|:${IPv6SegmentFormat}|:)|` +
+    `(?:${IPv6SegmentFormat}:){5}(?::${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,2}|:)|` +
+    `(?:${IPv6SegmentFormat}:){4}(?:(:${IPv6SegmentFormat}){0,1}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,3}|:)|` +
+    `(?:${IPv6SegmentFormat}:){3}(?:(:${IPv6SegmentFormat}){0,2}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,4}|:)|` +
+    `(?:${IPv6SegmentFormat}:){2}(?:(:${IPv6SegmentFormat}){0,3}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,5}|:)|` +
+    `(?:${IPv6SegmentFormat}:){1}(?:(:${IPv6SegmentFormat}){0,4}:${IPv4AddressFormat}|(:${IPv6SegmentFormat}){1,6}|:)|` +
+    `(?::((?::${IPv6SegmentFormat}){0,5}:${IPv4AddressFormat}|(?::${IPv6SegmentFormat}){1,7}|:))` +
+    ")(%[0-9a-zA-Z.]{1,})?$",
+);
 
 // #endregion
