@@ -1124,33 +1124,33 @@ export class NumberSchema extends Schema<number> {
 
       if (Number.isNaN(max) && Number.isNaN(min)) {
         // both min and max are unset
+        return value;
+      } else if (Number.isNaN(max) && !Number.isNaN(min)) {
+        return Math.max(min, value);
+      } else if (!Number.isNaN(max) && Number.isNaN(min)) {
+        return Math.min(max, value);
+      } else if (!Number.isNaN(max) && !Number.isNaN(min)) {
+        return Math.min(max, Math.max(min, value));
       }
-      }
-      else if ( !Number.isNaN(max) && Number.isNaN(min) ) {
-        return Math.min(max, value)
-      }
-      else if ( !Number.isNaN(max) && !Number.isNaN(min) ) {
-        return Math.min(max, Math.max(min, value))
-      }
-      return NaN
-    })
-    return this
+      return NaN;
+    });
+    return this;
   }
 
   /**
    * Adds a transform Snaps the value to the nearest multiple of the given step value.
    * @param multiplesOf the step value to snap to (defaults to the defined multipleOf constraint)
-   * @returns 
+   * @returns
    */
   snapToMultiple(multipleOf?: number): this {
     this.transform((value: number) => {
-      multipleOf ??= this._multipleOf
+      multipleOf ??= this._multipleOf;
 
       if (multipleOf !== multipleOf || multipleOf === 0) return value;
       return Math.round(value / multipleOf) * multipleOf;
     });
 
-    return this
+    return this;
   }
 
   // MARK: number validation
